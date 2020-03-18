@@ -6,6 +6,8 @@ to be more specific, each instruction takes the form `abcout A, B, C`. this adds
 this is still a mostly conceptual idea, though in the future i'd love to build a computer using TTL that follows this specification.
 
 ### folder structure
+- [assembler/](https://github.com/sporeball/ABCO-1/tree/master/assembler) - contains an assembler for ABCO-1 ROM files. works with the simulator and, eventually, the actual hardware. 
+
 - [simulator/](https://github.com/sporeball/ABCO-1/tree/master/simulator) - contains a simulation of the computer, built with Node.js.
 
 - hardware/ - coming soon.

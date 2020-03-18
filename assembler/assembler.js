@@ -1,18 +1,18 @@
 /*
-  simulator.js
-  interface to ABCO-1 simulator
+  assembler.js
+  interface to ABCO-1 assembler
   copyright (c) 2020 sporeball
   MIT license
 */
 
-const Simulator = require("./index.js");
+const Assembler = require("./index.js");
 
 const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
 const eol = require("eol");
 
-function simulator() {
+function assembler() {
   var args = process.argv.slice(2);
   var file = args[0];
   var filename;
@@ -21,7 +21,7 @@ function simulator() {
     runnerErr("a file must be passed");
   }
 
-  if (file.slice(-4) != ".bin") {
+  if (file.slice(-4) != ".txt") {
     runnerErr("improper file format");
   }
 
@@ -38,7 +38,7 @@ function simulator() {
     runnerErr("file not found");
   }
 
-  Simulator.parse(contents);
+  Assembler.assemble(contents);
 }
 
 runnerErr = str => {
@@ -46,4 +46,4 @@ runnerErr = str => {
   process.exit(1);
 }
 
-simulator();
+assembler();

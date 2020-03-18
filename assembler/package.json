@@ -1,0 +1,24 @@
+{
+  "name": "abco-1-assembler",
+  "version": "1.0.0",
+  "description": "an assembler for ABCO-1 ROM files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sporeball/ABCO-1.git"
+  },
+  "author": "sporeball",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sporeball/ABCO-1/issues"
+  },
+  "homepage": "https://github.com/sporeball/ABCO-1#readme",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "eol": "^0.9.1",
+    "log-update": "^4.0.0"
+  }
+}
