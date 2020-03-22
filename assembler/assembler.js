@@ -32,8 +32,9 @@ function assembler() {
   }
 
   // get file contents
+  // also normalizes line endings to CRLF
   try {
-    var contents = fs.readFileSync(path.join(__dirname, file), {encoding: "utf-8"}, function(){});
+    var contents = eol.crlf(fs.readFileSync(path.join(__dirname, file), {encoding: "utf-8"}, function(){}));
   } catch (e) {
     runnerErr("file not found");
   }
