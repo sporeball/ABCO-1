@@ -7,6 +7,9 @@
 
 // dependencies
 const fs = require("fs");
+const chalk = require("chalk");
+
+var line = 1;
 
 function assemble(input) {
   var contents = input; // file contents
@@ -21,11 +24,21 @@ function assemble(input) {
 
   for (var i in contents) {
     let str = contents[i];
+    if (str.slice(0, 6) != "abcout") {
+      err("wrong mnemonic");
+    }
+
     let nums = str.slice(7, str.length).split(", ");
+    if (nums.length != 3) {
+      err("bad instruction format");
+    }
 
     for (var j in nums) {
       let n = Number(nums[j]);
-      if (n > 255) {
+      if (n > 32767) {
+        err("address too big");
+      }
+      else if (n > 255) {
         bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
         bytes += String.fromCharCode(n & 255); // lower 8 bits of n
       } else {
@@ -33,12 +46,27 @@ function assemble(input) {
         bytes += String.fromCharCode(n);
       }
     }
+
+    line++;
   }
 
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
   fs.writeFile("rom.bin", bytes, "binary", function(){});
+  success("finished!")
   return;
+}
+
+// utils
+log = str => { console.log(chalk.white(str)) }
+info = str => { log(chalk.cyan(str)) }
+success = str => { log(chalk.green(str)) }
+warn = str => { log(chalk.yellow(str)) }
+
+err = str => {
+  log(chalk.red("error: ") + str);
+  info(`  at line ${line}`);
+  process.exit(1);
 }
 
 // exports
