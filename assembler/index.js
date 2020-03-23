@@ -19,11 +19,13 @@ function assemble(input) {
 
   contents = contents.split("\r\n");
 
-  for (var i = 0; i < contents.length; i++) {
+  for (var i in contents) {
     let str = contents[i];
-    bytes += String.fromCharCode(Number(str.slice(7, str.length).split(", ")[0]));
-    bytes += String.fromCharCode(Number(str.slice(7, str.length).split(", ")[1]));
-    bytes += String.fromCharCode(Number(str.slice(7, str.length).split(", ")[2]));
+    let nums = str.slice(7, str.length).split(", ");
+
+    for (var j in nums) {
+      bytes += String.fromCharCode(Number(nums[j]));
+    }
   }
 
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
