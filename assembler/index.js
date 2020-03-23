@@ -24,7 +24,14 @@ function assemble(input) {
     let nums = str.slice(7, str.length).split(", ");
 
     for (var j in nums) {
-      bytes += String.fromCharCode(Number(nums[j]));
+      let n = Number(nums[j]);
+      if (n > 255) {
+        bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
+        bytes += String.fromCharCode(n & 255); // lower 8 bits of n
+      } else {
+        bytes += String.fromCharCode(0x00);
+        bytes += String.fromCharCode(n);
+      }
     }
   }
 
