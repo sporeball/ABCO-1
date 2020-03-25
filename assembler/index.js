@@ -24,6 +24,14 @@ function assemble(input) {
 
   for (var i in contents) {
     let str = contents[i];
+
+    if (str == "" || str.indexOf(";") == 0) { // is this line just a comment?
+      continue;
+    }
+    if (str.indexOf(" ;") > 0) { // is there a comment at the end of this line?
+      str = str.slice(0, str.indexOf(" ;"))
+    }
+
     if (str.slice(0, 6) != "abcout") {
       err("wrong mnemonic");
     }
