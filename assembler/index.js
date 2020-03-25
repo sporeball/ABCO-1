@@ -34,7 +34,13 @@ function assemble(input) {
     }
 
     for (var j in nums) {
-      let n = Number(nums[j]);
+      let n;
+      if (nums[j].slice(0, 1) == "$") {
+        n = Number("0x" + nums[j].slice(1));
+      } else {
+        n = Number(nums[j]);
+      }
+
       if (n > 32767) {
         err("address too big");
       }
