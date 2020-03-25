@@ -41,6 +41,8 @@ function assemble(input) {
         n = Number(nums[j]);
       }
 
+      if (isNaN(n)) { err("not a number"); }
+
       if (n > 32767) {
         err("address too big");
       }
