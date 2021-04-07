@@ -9,32 +9,26 @@ const Assembler = require("./index.js");
 
 const chalk = require("chalk");
 const fs = require("fs");
-const path = require("path");
 const eol = require("eol");
 
+const args = require("yeow")({
+  "file": {
+    type: "file",
+    extensions: ".txt",
+    required: true,
+    missing: "a file must be passed",
+    invalid: "improper file format"
+  }
+});
+
 function assembler() {
-  var args = process.argv.slice(2);
-  var file = args[0];
-  var filename;
-
-  if (file === undefined) {
-    runnerErr("a file must be passed");
-  }
-
-  if (file.slice(-4) != ".txt") {
-    runnerErr("improper file format");
-  }
-
-  if (file.indexOf("/") > -1) {
-    filename = file.slice(file.lastIndexOf("/") + 1, file.length);
-  } else {
-    filename = file;
-  }
+  var {file} = args;
+  var filename = file.slice(file.lastIndexOf("/") + 1);
 
   // get file contents
   // also normalizes line endings to CRLF
   try {
-    var contents = eol.crlf(fs.readFileSync(path.join(__dirname, file), {encoding: "utf-8"}, function(){}));
+    var contents = eol.crlf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
   } catch (e) {
     runnerErr("file not found");
   }

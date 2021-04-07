@@ -19,6 +19,7 @@
   "dependencies": {
     "chalk": "^3.0.0",
     "eol": "^0.9.1",
-    "log-update": "^4.0.0"
+    "log-update": "^4.0.0",
+    "yeow": "^0.2.0"
   }
 }
