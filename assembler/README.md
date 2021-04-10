@@ -11,9 +11,7 @@ npm install
 you can then assemble any correctly written program like so:
 
 ```
-node assembler.js prog.txt
+node assembler.js prog.abcout
 ```
 
-this will create a file named `rom.bin`, suitable for use with the [simulator](https://github.com/sporeball/ABCO-1/tree/master/simulator) and, eventually, the actual hardware.
-
-note that the assembler **currently only accepts text files.** this may change in the future.
+this will create a file named `rom.bin`, suitable for use with both the [simulator](https://github.com/sporeball/ABCO-1/tree/master/simulator) and the actual hardware.

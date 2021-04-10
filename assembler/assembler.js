@@ -14,7 +14,7 @@ const eol = require("eol");
 const args = require("yeow")({
   "file": {
     type: "file",
-    extensions: ".txt",
+    extensions: ".abcout",
     required: true,
     missing: "a file must be passed",
     invalid: "improper file format"

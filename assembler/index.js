@@ -9,11 +9,11 @@
 const fs = require("fs");
 const chalk = require("chalk");
 
-var line = 1;
+let l = 1;
 
 function assemble(input) {
-  var contents = input; // file contents
-  var bytes = "";
+  let contents = input; // file contents
+  let bytes = "";
 
   // strip trailing newline if present
   if (contents.slice(-2) == "\r\n") {
@@ -22,39 +22,40 @@ function assemble(input) {
 
   contents = contents.split("\r\n");
 
-  for (var i in contents) {
-    let str = contents[i];
-
-    if (str == "" || str.indexOf(";") == 0) { // is this line just a comment?
+  for (let line of contents) {
+    // remove comments
+    // skip if the line is or becomes empty
+    if (line.indexOf(";") >= 0) {
+      line = line.slice(0, line.indexOf(";")).trimEnd();
+    }
+    if (line == "") {
+      l++;
       continue;
     }
-    if (str.indexOf(" ;") > 0) { // is there a comment at the end of this line?
-      str = str.slice(0, str.indexOf(" ;"))
+
+    // remove mnemonic if given
+    // (i like giving it, but others may not)
+    if (line.slice(0, 6) == "abcout") {
+      line = line.slice(6, line.length).trimStart();
     }
 
-    if (str.slice(0, 6) != "abcout") {
-      err("wrong mnemonic");
-    }
+    let args = line.split(", ");
+    if (args.length != 3) { err("wrong number of arguments"); }
+    if (args[2] % 6 != 0) { err("invalid value for argument C"); }
 
-    let nums = str.slice(7, str.length).split(", ");
-    if (nums.length != 3) {
-      err("bad instruction format");
-    }
-
-    for (var j in nums) {
+    for (let arg of args) {
       let n;
-      if (nums[j].slice(0, 1) == "$") {
-        n = Number("0x" + nums[j].slice(1));
+      if (arg.slice(0, 1) == "$") {
+        n = Number("0x" + arg.slice(1));
       } else {
-        n = Number(nums[j]);
+        n = Number(arg);
       }
 
-      if (isNaN(n)) { err("not a number"); }
+      if (isNaN(n)) { err("non-numeric argument given"); }
 
       if (n > 32767) {
         err("address too big");
-      }
-      else if (n > 255) {
+      } else if (n > 255) {
         bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
         bytes += String.fromCharCode(n & 255); // lower 8 bits of n
       } else {
@@ -63,9 +64,10 @@ function assemble(input) {
       }
     }
 
-    line++;
+    l++;
   }
 
+  // pad with null bytes until 32K
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
   fs.writeFile("rom.bin", bytes, "binary", function(){});
@@ -81,7 +83,7 @@ warn = str => { log(chalk.yellow(str)) }
 
 err = str => {
   log(chalk.red("error: ") + str);
-  info(`  at line ${line}`);
+  info(`  at line ${l}`);
   process.exit(1);
 }
 
