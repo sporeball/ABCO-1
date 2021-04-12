@@ -23,6 +23,12 @@ function assemble(input) {
   contents = contents.split("\r\n");
 
   for (let line of contents) {
+    // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for 3 consecutive null bytes
+    // this leads to a hard limit of 5,460 instructions
+    if (bytes.length == 32760) {
+      err("too many instructions");
+    }
+
     // remove comments
     // skip if the line is or becomes empty
     if (line.indexOf(";") >= 0) {
