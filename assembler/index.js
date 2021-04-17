@@ -64,9 +64,11 @@ function assemble(input) {
       } else if (n > 255) {
         bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
         bytes += String.fromCharCode(n & 255); // lower 8 bits of n
-      } else {
+      } else if (n >= 0) {
         bytes += String.fromCharCode(0x00);
         bytes += String.fromCharCode(n);
+      } else {
+        err("address cannot be negative");
       }
     }
 
