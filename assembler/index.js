@@ -9,7 +9,9 @@
 const fs = require("fs");
 const chalk = require("chalk");
 
-let l = 1;
+let lineNo = 1;
+let ip = 0;
+let table = {}; // symbol table (for labels)
 
 function assemble(input) {
   let contents = input; // file contents
@@ -20,22 +22,41 @@ function assemble(input) {
     contents = contents.slice(0, -2);
   }
 
-  contents = contents.split("\r\n");
+  // remove comments from lines, and trim the beginnings
+  // lines which only contain a comment will be reduced to the empty string
+  contents = contents.split("\r\n")
+    .map(x => x.indexOf(";") >= 0 ? x.slice(0, x.indexOf(";")).trimEnd() : x)
+    .map(x => x.trimStart());
 
+  // first pass
+  // assemble symbol table
   for (let line of contents) {
-    // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for 3 consecutive null bytes
+    if (line.match(/^[a-z_]([a-z0-9_]+)?:$/)) {
+      if (table[line.slice(0, -1)] !== undefined) { err("label already in use"); }
+      table[line.slice(0, -1)] = String(ip);
+    // if the line is not empty, assume there is a valid instruction there
+    // even if there isn't, the problem will be caught on the second pass
+    } else if (!line.match(/^$/)) {
+      ip += 6;
+    }
+
+    lineNo++;
+  }
+
+  lineNo = 1;
+
+  // second pass
+  // assemble the ROM
+  for (let line of contents) {
+    // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
     // this leads to a hard limit of 5,460 instructions
     if (bytes.length == 32760) {
       err("too many instructions");
     }
 
-    // remove comments
-    // skip if the line is or becomes empty
-    if (line.indexOf(";") >= 0) {
-      line = line.slice(0, line.indexOf(";")).trimEnd();
-    }
-    if (line == "") {
-      l++;
+    // if a line is a label, or is empty, skip it
+    if (line.match(/^[a-z_]([a-z0-9_]+)?:$|^$/)) {
+      lineNo++;
       continue;
     }
 
@@ -46,8 +67,16 @@ function assemble(input) {
     }
 
     let args = line.split(", ");
+    let C = args[2];
     if (args.length != 3) { err("wrong number of arguments"); }
-    if (args[2] % 6 != 0) { err("invalid value for argument C"); }
+
+    // handling of third argument
+    if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
+      if (table[C] === undefined) { err("label not found"); }
+      args[2] = table[C];
+    } else {
+      if (C % 6 != 0) { err("invalid value for argument C"); }
+    }
 
     for (let arg of args) {
       let n;
@@ -72,9 +101,11 @@ function assemble(input) {
       }
     }
 
-    l++;
+    lineNo++;
   }
 
+  // add halt condition
+  bytes += String.fromCharCode(0x00, 0x00, 0x00, 0x00, 0x7F, 0xFF);
   // pad with null bytes until 32K
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
@@ -91,7 +122,7 @@ warn = str => { log(chalk.yellow(str)) }
 
 err = str => {
   log(chalk.red("error: ") + str);
-  info(`  at line ${l}`);
+  info(`  at line ${lineNo}`);
   process.exit(1);
 }
 
