@@ -13,6 +13,9 @@ let lineNo = 1;
 let ip = 0;
 let table = {}; // symbol table (for labels)
 
+let macros = {};
+let inMacro = false;
+
 function assemble(input) {
   let contents = input; // file contents
   let bytes = "";
@@ -28,15 +31,84 @@ function assemble(input) {
     .map(x => x.indexOf(";") >= 0 ? x.slice(0, x.indexOf(";")).trimEnd() : x)
     .map(x => x.trimStart());
 
-  // first pass
+  // validate all macros
+  for (let macro of contents.join("\r\n").match(/%macro.*?%endmacro/gs)) {
+
+    macro = macro.split("\r\n")
+      .map((x, i) => i == 0 ? x.split(" ").slice(1) : x)
+      .slice(0, -1)
+      .flat();
+
+    let name = macro[0];
+    if (!name.match(/^[a-z_]([a-z0-9_]+)?$/)) { err("invalid macro name"); }
+    if (macros[name] !== undefined) { err("macro already in use"); }
+    if (table[name] !== undefined) { err("macro and label cannot share a name"); }
+
+    let params = macro[1];
+    if (!params.match(/^\d$/)) { err("macro parameter count missing or invalid"); }
+
+    macros[name] = {
+      code: [],
+      calls: 0,
+      params: Number(params)
+    }
+    lineNo = contents.findIndex(x => x == `%macro ${name} ${params}`) + 1;
+
+    for (let line of macro.slice(2)) {
+      // TODO: this is shared, abstract into function
+      if (line.match(/^$/)) {
+        lineNo++;
+        continue;
+      }
+
+      if (line.slice(0, 6) == "abcout") {
+        line = line.slice(6, line.length).trimStart();
+      }
+
+      let args = line.split(", ");
+      if (args.length != 3) { err("wrong number of arguments"); }
+      let C = args[2];
+      if (C % 6 != 0) { err("invalid value for argument C"); }
+
+      for (let arg of args) {
+        let n;
+        if (arg.slice(0, 1) == "$") {
+          n = Number("0x" + arg.slice(1));
+        } else {
+          n = Number(arg);
+        }
+
+        if (isNaN(n)) { err("non-numeric argument given"); }
+
+        if (n > 32767) {
+          err("address too big");
+        } else if (n < 0) {
+          err("address cannot be negative");
+        }
+      }
+
+      macros[name].code.push(line);
+    }
+  }
+
+  lineNo = 1;
+
   // assemble symbol table
   for (let line of contents) {
+    if (line.startsWith("%macro")) { inMacro = true; }
+    if (line == "%endmacro") {
+      inMacro = false;
+      lineNo++;
+      continue;
+    }
+
     if (line.match(/^[a-z_]([a-z0-9_]+)?:$/)) {
       if (table[line.slice(0, -1)] !== undefined) { err("label already in use"); }
+      if (macros[line.slice(0, -1)] !== undefined) { err("label and macro cannot share a name"); }
       table[line.slice(0, -1)] = String(ip);
     // if the line is not empty, assume there is a valid instruction there
     // even if there isn't, the problem will be caught on the second pass
-    } else if (!line.match(/^$/)) {
+  } else if (!line.match(/^$/) && !inMacro) {
       ip += 6;
     }
 
@@ -45,7 +117,6 @@ function assemble(input) {
 
   lineNo = 1;
 
-  // second pass
   // assemble the ROM
   for (let line of contents) {
     // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
@@ -54,8 +125,14 @@ function assemble(input) {
       err("too many instructions");
     }
 
-    // if a line is a label, or is empty, skip it
-    if (line.match(/^[a-z_]([a-z0-9_]+)?:$|^$/)) {
+    if (line.startsWith("%macro")) { inMacro = true; }
+    if (line == "%endmacro") {
+      inMacro = false;
+      lineNo++;
+      continue;
+    }
+
+    if (line.match(/^[a-z_]([a-z0-9_]+)?:$|^$/) || inMacro == true) {
       lineNo++;
       continue;
     }
