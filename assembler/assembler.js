@@ -22,6 +22,8 @@ const args = require("yeow")({
   }
 });
 
+let contents;
+
 function assembler() {
   var {file} = args;
   var filename = file.slice(file.lastIndexOf("/") + 1);
@@ -29,7 +31,7 @@ function assembler() {
   // get file contents
   // also normalizes line endings to CRLF
   try {
-    var contents = eol.crlf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
+    contents = eol.crlf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
   } catch (e) {
     throw new Exception("file not found");
   }

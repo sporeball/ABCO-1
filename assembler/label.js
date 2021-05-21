@@ -31,7 +31,7 @@ function validate(label) {
   if (label == "abcout") { throw new LineException("\"abcout\" cannot be used as a label name"); }
   if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) { throw new LineException("invalid label name"); }
 
-  if (macros[label] !== undefined) { Util.warn(`label "${label}" shares its name with a macro; this is not recommended`); }
+  if (global.macros[label] !== undefined) { Util.warn(`label "${label}" shares its name with a macro; this is not recommended`); }
 }
 
 module.exports = { initialize };

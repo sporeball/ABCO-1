@@ -33,7 +33,7 @@ const argify = args => {
   if (typeof args === "string") { args = args.split(" "); }
   if (!isSeparated(args)) { throw new LineException("arguments must be comma-separated"); }
   return args.map(x => x.endsWith(",") ? x.slice(0, -1) : x);
-}
+};
 
 /**
  * find all indices of a value in an array (1-indexed)

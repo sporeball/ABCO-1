@@ -144,7 +144,7 @@ function assemble(input) {
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
   fs.writeFile("rom.bin", bytes, "binary", function(){});
-  Util.success("finished!")
+  Util.success("finished!");
 
   return;
 }
