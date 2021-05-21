@@ -6,164 +6,134 @@
 */
 
 // dependencies
+const Label = require("./label.js");
+const Macro = require("./macro.js");
+const { Exception, LineException, ...Util } = require("./util.js");
+
 const fs = require("fs");
-const chalk = require("chalk");
+
+global.lineNo = 1;
+global.labels = {};
+global.macros = {};
 
 let contents; // file contents
-let final;     // final result
-
-let lineNo = 1;
-let ip = 0;
-let table = {}; // symbol table (for labels)
-
-let macros = {};
+let final;    // final result
 
 function assemble(input) {
   contents = input;
   let bytes = "";
 
-  // strip trailing newline if present
   if (contents.slice(-2) == "\r\n") {
     contents = contents.slice(0, -2);
   }
 
   // initial processing
-  // remove comments, reform hex literals, and trim whitespace
-  // lines which only contain a comment will be reduced to the empty string
   contents = contents.replace(/;.*$/gm, "")
     .replace(/\$/gm, "0x")
     .split("\r\n")
-    .map(x => x.trimStart().trimEnd());
+    .map(x => x.trim())
+    .map(x => Util.normalize(x)) // collapse whitespace within
+    .map(x => x.startsWith("abcout") && !x.endsWith(":") ? x.slice(7) : x); // remove "abcout"
 
-  // validate all macros
-  for (let macro of contents.join("\r\n").match(/%macro.*?%endmacro/gs) || []) {
-    // yield array with macro name, parameter count, and its lines
-    macro = macro.split("\r\n")
-      .map((x, i) => i == 0 ? x.split(" ").slice(1) : x)
-      .slice(0, -1)
-      .flat();
+  // create all macros
+  for (let macro of contents.join("\r\n").match(/%macro .*?%endmacro/gs) || []) {
+    let definition = macro.split("\r\n")[0]; // the definition line
+    global.lineNo = contents.indexOf(definition) + 1;
 
-    let indices = findIndices(`%macro ${macro[0]} ${macro[1]}`, contents);
-    if (indices.length == 0) { err(`"${macro[0]}" definition malformed (check spelling?)`, false); }
-    lineNo = indices[0] + 1;
-
-    // name validation
-    let name = macro[0];
-    if (name == "abcout") { err("\"abcout\" cannot be used as a macro name"); }
-    if (!name.match(/^[a-z_]([a-z0-9_]+)?$/)) { err("invalid macro name"); }
-    if (macros[name] !== undefined) { err(`macro "${name}" already defined`); }
-    if (table[name] !== undefined) { err("macro and label cannot share a name"); }
-
-    // parameter validation
-    let params = macro[1];
-    if (!params.match(/^0$|^[1-9][0-9]*$/)) { err("macro parameter count missing or invalid"); }
-
-    // add the macro to the list
-    macros[name] = {
-      code: [],
-      calls: 0,
-      params: Number(params)
-    }
-
-    // validate all of its lines
-    let lines = macro.slice(2);
-    for (let line of [...new Set(lines)]) {
-      lineNo = findIndices(line, contents)[0];
-      if (line.split(" ").filter(x => x != "")[0] == name) {
-        err(`macro "${name}" cannot call itself`);
-      }
-      validate(line);
-    }
-
-    macros[name].code = lines;
+    Macro.create(macro);
   }
 
-  // expand parts
-  final = contents; // start with this
+  // array of array of empty strings
+  // formed by taking the code's macro definitions, and replacing the lines of each
+  let blanks = (contents.join("\r\n").match(/%macro .*?%endmacro/gs) || [])
+    .map(x => x.split("\r\n").map(y => y = ""));
 
-  // for each unique macro that is used in the code...
-  for (let line of setOf(/^(?!abcout)[a-z_]([a-z0-9_]+)?[^\r\n:]*$/gm, contents)) {
-    // for each index at which it appears...
-    for (let index of findIndices(line, contents)) {
-      lineNo = index;
-      let [instruction, ...args] = line.split(" ")
-        .filter(x => x != "");
+  // replace any line that's part of a macro definition with the empty string
+  contents = contents.join("\r\n")
+    .split(/%macro.*?%endmacro/gs)           // split on macro
+    .map((x, i) => [x, blanks[i]])           // interleave with blanks
+    .flat(2)
+    .slice(0, -1)                            // remove last element (undefined)
+    .map(x => x.match(/^(\r\n)+$/) ? "" : x) // normalize any string consisting only of line endings
+    .map(x => x.split("\r\n"))               // split on the line endings that remain
+    .flat(Infinity);                         // and flatten
 
-      // replace it with its code
-      if (macros[instruction] === undefined) { err(`macro "${instruction}" is undefined`); }
-      final[index - 1] = macros[instruction].code;
-      macros[instruction].calls++;
-    }
-  }
-
-  // remove all macro defiinitions
-  final = final.flat()
-    .join("\r\n")
-    .split(/%macro.*?%endmacro/gs)
-    .join("")
-    .split("\r\n")
-    .filter(x => x != "");
-
-  contents = contents.flat();
-
-  // validate and set all labels
+  // initialize all labels
   for (let label of contents.filter(x => x.match(/^.+:$/))) {
-    // label names must be unique
-    let indices = findIndices(label, contents);
-    if (indices.length > 1) {
-      lineNo = indices[1];
-      err(`label "${label.slice(0, -1)}" already in use`);
+    global.lineNo = contents.indexOf(label) + 1;
+    // stupid and confusing hack ahead
+    if (contents[global.lineNo].match(/^.+:$/)) {
+      global.lineNo++;
+      throw new LineException("two labels cannot reference the same address");
     }
-
-    let finalIndex = final.findIndex(x => x == label);
-
-    label = label.slice(0, -1);
-    lineNo = indices[0];
-
-    if (label == "abcout") { err("\"abcout\" cannot be used as a label name"); }
-    if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) { err("invalid label name"); }
-    if (macros[label] !== undefined) { err(`label and macro cannot share a name`); }
-
-    // the label's index is determined by the number of instructions before it
-    table[label] = finalIndex * 6;
-    final.splice(finalIndex, 1);
+    
+    Label.initialize(label);
   }
+
+  global.lineNo = 0;
+
+  // expand all macros
+  contents = contents.flatMap(x => {
+    global.lineNo++;
+    if (Util.isMacro(x)) {
+      return Macro.expand(x, top = true);
+    } else {
+      return x;
+    }
+  });
+
+  // set all labels
+  let filtered = contents.filter(x => x != "");
+  for (let label of filtered.filter(x => x.match(/^.+:$/))) {
+    let index = filtered.indexOf(label);
+    label = label.slice(0, -1); // remove colon
+    global.labels[label] = index * 6;
+    filtered.splice(index, 1);
+  }
+
+  // replace any label declaration with the empty string
+  contents = contents.map(x => x.match(/^.+:$/) ? "" : x);
+
+  global.lineNo = 0;
 
   // assemble the ROM
-  for (let line of final) {
+  for (let line of contents) {
+    global.lineNo++;
+
+    if (line == "") continue;
+
     // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
     // this leads to a hard limit of 5,460 instructions
     if (bytes.length == 32760) {
-      err("too many instructions", false);
+      throw new LineException("too many instructions");
     }
 
-    // remove mnemonic if given
-    // (i like giving it, but others may not)
-    if (line.slice(0, 6) == "abcout") {
-      line = line.slice(6, line.length).trimStart();
-    }
-
-    let args = line.split(", ");
+    let args = Util.argify(line);
+    if (args.length != 3) { throw new LineException("wrong number of arguments"); }
     let C = args[2];
 
     // if the third argument is a label...
     if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-      if (table[C] === undefined) { err("label not found"); }
+      if (global.labels[C] === undefined) { throw new LineException("label not found"); }
       // update it if it is found
-      args[2] = table[C];
-      line = args.join(", ")
+      args[2] = global.labels[C];
     }
 
-    validate(line);
-
+    if (args[2] % 6 != 0) { throw new LineException("invalid value for argument C"); }
+    
     for (let arg of args) {
       let n = Number(arg);
-      if (n > 255) {
+      if (isNaN(n)) { throw new LineException("non-numeric argument given"); }
+      if (n > 32767) {
+        throw new LineException("argument too big");
+      } else if (n > 255) {
         bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
         bytes += String.fromCharCode(n & 255); // lower 8 bits of n
-      } else {
+      } else if (n >= 0) {
         bytes += String.fromCharCode(0x00);
         bytes += String.fromCharCode(n);
+      } else {
+        throw new LineException("argument cannot be negative");
       }
     }
   }
@@ -174,82 +144,9 @@ function assemble(input) {
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
   fs.writeFile("rom.bin", bytes, "binary", function(){});
-  success("finished!")
+  Util.success("finished!")
+
   return;
 }
 
-/**
- * validate a line containing an instruction
- * @param {string} line
- */
-function validate(line) {
-  if (line.match(/^$/)) {
-    lineNo++;
-    return;
-  }
-
-  let instruction, args;
-
-  // yield the above
-  let split = line.split(" ").filter(x => x != "");
-  // if the first element starts with a digit, an instruction was not given, so we default to abcout
-  if (split[0].match(/^\d/)) {
-    instruction = "abcout";
-    args = split;
-  } else {
-    [instruction, ...args] = split;
-  }
-
-  // if splitting on commas yields a different length, one or more commas are missing
-  let a = args.join("").split(",");
-  if (a.length != args.length) { err("arguments should be comma-separated"); }
-  args = a;
-
-  // format validation
-  if (instruction == "abcout") {
-    if (args.length != 3) { err("wrong number of arguments"); }
-    if (args[2] % 6 != 0) { err("invalid value for argument C"); }
-  } else {
-    if (macros[instruction] === undefined) { err(`macro "${instruction}" is undefined`); }
-    if (args.length != macros[instruction].params) { err("wrong number of arguments"); }
-  }
-
-  // argument validation
-  for (let arg of args) {
-    let n = Number(arg);
-    if (isNaN(n)) { err("non-numeric argument given"); }
-    if (n > 32767) {
-      err("argument too big");
-    } else if (n < 0) {
-      err("argument cannot be negative");
-    }
-  }
-}
-
-// utils
-const log = str => { console.log(chalk.white(str)) };
-const info = str => { log(chalk.cyan(str)) };
-const success = str => { log(chalk.green(str)) };
-const warn = str => { log(chalk.yellow(str)) };
-const err = (str, line = true) => {
-  log(chalk.red("error: ") + str);
-  if (line == true) info(`  at line ${lineNo}`);
-  process.exit(1);
-};
-
-/**
- * find all indices of a value in an array (1-indexed)
- * @param val
- * @param {Array} arr
- */
-const findIndices = (val, arr) => arr.map((x, i) => x == val ? i + 1 : "").filter(x => x != "");
-
-/**
- * return the Set of all array values matching a regular expression
- * @param {RegExp} exp
- * @param {Array} arr
- */
-const setOf = (exp, arr) => [...new Set(arr.filter(x => x.match(exp)))];
-
-// exports
 exports.assemble = assemble;

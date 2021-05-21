@@ -6,6 +6,7 @@
 */
 
 const Assembler = require("./index.js");
+const {Exception, LineException, ...Util} = require("./util.js");
 
 const chalk = require("chalk");
 const fs = require("fs");
@@ -30,15 +31,14 @@ function assembler() {
   try {
     var contents = eol.crlf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
   } catch (e) {
-    runnerErr("file not found");
+    throw new Exception("file not found");
   }
 
-  Assembler.assemble(contents);
-}
-
-runnerErr = str => {
-  console.log(chalk.red("error: ") + str);
-  process.exit(1);
+  try {
+    Assembler.assemble(contents);
+  } catch (e) {
+    console.log(e.message);
+  }
 }
 
 assembler();
