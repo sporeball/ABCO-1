@@ -31,8 +31,8 @@ to allow you to branch to sections of your program more easily, *symbolic labels
 label names are always followed by a colon `:`, and can consist of lowercase letters, digits, and underscores; the only exception is that names cannot begin with a digit.
 
 #### macros
-a *macro* is a block of instructions that can be defined with its own mnemonic, then expanded at compile time. they follow the same naming rules as labels; however, labels and macros cannot share names with each other.
+a *macro* is a block of instructions that can be defined with its own mnemonic, then expanded at compile time. they follow the same naming rules as labels.
 
 macro declaration begins with the keyword `%macro`, followed by a macro name and a number of parameters it should take (e.g. `%macro beq 0`), and ends with the keyword `%endmacro`.
 
-*this feature is in progress!* currently only niladic (zero-parameter) macros which do not attempt to define labels or call any other macros are guaranteed to work.
+*this feature is in progress!*
