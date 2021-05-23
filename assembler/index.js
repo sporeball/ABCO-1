@@ -23,21 +23,21 @@ function assemble(input) {
   contents = input;
   let bytes = "";
 
-  if (contents.slice(-2) == "\r\n") {
-    contents = contents.slice(0, -2);
+  if (contents.slice(-1) == "\n") {
+    contents = contents.slice(0, -1);
   }
 
   // initial processing
   contents = contents.replace(/;.*$/gm, "")
     .replace(/\$/gm, "0x")
-    .split("\r\n")
+    .split("\n")
     .map(x => x.trim())
     .map(x => Util.normalize(x)) // collapse whitespace within
     .map(x => x.startsWith("abcout") && !x.endsWith(":") ? x.slice(7) : x); // remove "abcout"
 
   // create all macros
-  for (let macro of contents.join("\r\n").match(/%macro .*?%endmacro/gs) || []) {
-    let definition = macro.split("\r\n")[0]; // the definition line
+  for (let macro of contents.join("\n").match(/%macro .*?%endmacro/gs) || []) {
+    let definition = macro.split("\n")[0]; // the definition line
     global.lineNo = contents.indexOf(definition) + 1;
 
     Macro.create(macro);
@@ -45,17 +45,17 @@ function assemble(input) {
 
   // array of array of empty strings
   // formed by taking the code's macro definitions, and replacing the lines of each
-  let blanks = (contents.join("\r\n").match(/%macro .*?%endmacro/gs) || [])
-    .map(x => x.split("\r\n").map(y => y = ""));
+  let blanks = (contents.join("\n").match(/%macro .*?%endmacro/gs) || [])
+    .map(x => x.split("\n").map(y => y = ""));
 
   // replace any line that's part of a macro definition with the empty string
-  contents = contents.join("\r\n")
+  contents = contents.join("\n")
     .split(/%macro.*?%endmacro/gs)           // split on macro
     .map((x, i) => [x, blanks[i]])           // interleave with blanks
     .flat(2)
     .slice(0, -1)                            // remove last element (undefined)
-    .map(x => x.match(/^(\r\n)+$/) ? "" : x) // normalize any string consisting only of line endings
-    .map(x => x.split("\r\n"))               // split on the line endings that remain
+    .map(x => x.match(/^(\n)+$/) ? "" : x) // normalize any string consisting only of line endings
+    .map(x => x.split("\n"))               // split on the line endings that remain
     .flat(Infinity);                         // and flatten
 
   // initialize all labels

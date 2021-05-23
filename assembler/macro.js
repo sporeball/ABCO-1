@@ -12,11 +12,11 @@ const {Exception, LineException, ...Util} = require("./util.js");
  * @param {String} macro
  */
 function create(macro) {
-  let definition = macro.split("\r\n")[0];
+  let definition = macro.split("\n")[0];
   let dependencies = [];
 
   // yield array with macro name, parameter count, and its lines
-  macro = macro.split("\r\n")
+  macro = macro.split("\n")
     .map((x, i) => i == 0 ? x.split(" ").slice(1) : x)
     .slice(0, -1)
     .flat();

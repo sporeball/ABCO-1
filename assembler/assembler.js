@@ -31,7 +31,7 @@ function assembler() {
   // get file contents
   // also normalizes line endings to CRLF
   try {
-    contents = eol.crlf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
+    contents = eol.lf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
   } catch (e) {
     throw new Exception("file not found");
   }

@@ -49,7 +49,7 @@ const findIndices = (val, arr) => arr.map((x, i) => x == val ? i + 1 : "").filte
  * @param instr
  * @returns {boolean}
  */
-const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\r\n:]*$/gm);
+const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\n:]*$/gm);
 
 /**
  * validates comma separation
