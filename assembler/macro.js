@@ -91,7 +91,6 @@ function validate(definition) {
   // name validation
   if (name == "abcout") { throw new LineException("\"abcout\" cannot be used as a macro name"); }
   if (!name.match(/^[a-z_]([a-z0-9_]+)?$/)) { throw new LineException("invalid macro name"); }
-  if (global.labels[name] !== undefined) { throw new LineException("macro and label cannot share a name"); }
 
   // parameter validation
   if (isNaN(params)) { throw new LineException("macro parameter count missing or invalid"); }
