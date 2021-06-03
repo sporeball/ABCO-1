@@ -19,7 +19,7 @@ global.macros = {};
 let contents; // file contents
 let final;    // final result
 
-function assemble(input) {
+function assemble(input, args) {
   contents = input;
   let bytes = "";
 
@@ -143,7 +143,7 @@ function assemble(input) {
   // pad with null bytes until 32K
   bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
-  fs.writeFile("rom.bin", bytes, "binary", function(){});
+  fs.writeFile(args.out, bytes, "binary", function(){});
   Util.success("finished!");
 
   return;

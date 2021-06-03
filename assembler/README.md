@@ -16,7 +16,10 @@ you can then assemble any correctly written program like so:
 node assembler.js prog.abcout
 ```
 
-this will create a file named `rom.bin`, suitable for use with both the [simulator](https://github.com/sporeball/ABCO-1/tree/master/simulator) and the actual hardware.
+assembled ROMs are suitable for use with both the [simulator](https://github.com/sporeball/ABCO-1/tree/master/simulator) and the actual hardware.
+
+### command line flags
+- `-o` / `--out` - the filename for the assembled ROM (default: `rom.bin`)
 
 ### writing programs
 

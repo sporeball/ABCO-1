@@ -19,6 +19,13 @@ const args = require("yeow")({
     required: true,
     missing: "a file must be passed",
     invalid: "improper file format"
+  },
+  "out": {
+    type: "file",
+    extensions: ".bin",
+    aliases: "-o / --out",
+    default: "rom.bin",
+    invalid: "improper file format"
   }
 });
 
@@ -37,7 +44,7 @@ function assembler() {
   }
 
   try {
-    Assembler.assemble(contents);
+    Assembler.assemble(contents, args);
   } catch (e) {
     console.log(e.message);
   }
