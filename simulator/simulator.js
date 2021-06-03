@@ -9,7 +9,6 @@ const Simulator = require("./index.js");
 
 const chalk = require("chalk");
 const fs = require("fs");
-const eol = require("eol");
 
 const args = require("yeow")({
   "file": {
@@ -21,13 +20,14 @@ const args = require("yeow")({
   }
 });
 
+let contents;
+
 function simulator() {
-  var {file} = args;
-  var filename = file.slice(file.lastIndexOf("/") + 1);
+  let {file} = args;
 
   // get file contents
   try {
-    var contents = fs.readFileSync(file, {encoding: "utf-8"}, function(){});
+    contents = fs.readFileSync(file, {encoding: "utf-8"}, function(){});
   } catch (e) {
     runnerErr("file not found");
   }

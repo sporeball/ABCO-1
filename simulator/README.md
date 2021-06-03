@@ -1,6 +1,8 @@
 ## simulator
 this folder contains a simulation of the ABCO-1, built with Node.js.
 
+**the simulator is currently on indefinite hold.**
+
 ### usage
 first, clone the ABCO-1 repository, `cd` into this directory, and install the simulator's dependencies:
 

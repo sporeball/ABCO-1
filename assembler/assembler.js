@@ -32,8 +32,7 @@ const args = require("yeow")({
 let contents;
 
 function assembler() {
-  var {file} = args;
-  var filename = file.slice(file.lastIndexOf("/") + 1);
+  let {file} = args;
 
   // get file contents
   // also normalizes line endings to CRLF
