@@ -5,9 +5,8 @@
   MIT license
 */
 
-function parse(code) {
+function parse (code) {
   console.log(`code: ${code}`);
-  return;
 }
 
 // exports

@@ -5,7 +5,7 @@
   MIT license
 */
 
-const chalk = require("chalk");
+const chalk = require('chalk');
 
 // log levels
 const info = str => console.log(chalk.cyan(str));
@@ -13,14 +13,14 @@ const success = str => console.log(chalk.green(str));
 
 // error classes
 class Exception {
-  constructor(message) {
-    this.message = `${chalk.red("error:")} ${message}`;
+  constructor (message) {
+    this.message = `${chalk.red('error:')} ${message}`;
   }
 }
 
 class LineException {
-  constructor(message) {
-    this.message = `${chalk.red("error:")} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`;
+  constructor (message) {
+    this.message = `${chalk.red('error:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`;
   }
 }
 
@@ -30,9 +30,9 @@ class LineException {
  * @returns {Array}
  */
 const argify = args => {
-  if (typeof args === "string") { args = args.split(" "); }
-  if (!isSeparated(args)) { throw new LineException("arguments must be comma-separated"); }
-  return args.map(x => x.endsWith(",") ? x.slice(0, -1) : x);
+  if (typeof args === 'string') { args = args.split(' '); }
+  if (!isSeparated(args)) { throw new LineException('arguments must be comma-separated'); }
+  return args.map(x => x.endsWith(',') ? x.slice(0, -1) : x);
 };
 
 /**
@@ -41,7 +41,7 @@ const argify = args => {
  * @param {Array} arr
  * @returns {Array}
  */
-const findIndices = (val, arr) => arr.map((x, i) => x == val ? i + 1 : "").filter(x => x != "");
+const findIndices = (val, arr) => arr.map((x, i) => x === val ? i + 1 : '').filter(x => x !== '');
 
 /**
  * return whether an instruction is a macro (anything other than abcout)
@@ -56,14 +56,14 @@ const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\n:]*$/gm);
  * @param {Array} args
  * @returns {boolean}
  */
-const isSeparated = args => args.findIndex(x => !x.match(/^[^, ]+,$/)) + 1 == args.length;
+const isSeparated = args => args.findIndex(x => !x.match(/^[^, ]+,$/)) + 1 === args.length;
 
 /**
  * remove consecutive spaces in a string
  * @param str
  * @returns {String}
  */
-const normalize = str => str.split(" ").filter(x => x != "").join(" ");
+const normalize = str => str.split(' ').filter(x => x !== '').join(' ');
 
 /**
  * return all array values matching a regular expression
@@ -77,6 +77,6 @@ const setOf = (exp, arr) => [...new Set(arr.filter(x => x.match(exp)))];
  * produce a warning
  * @param {String} message
  */
-const warn = message => console.log(`${chalk.yellow("warning:")} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`);
+const warn = message => console.log(`${chalk.yellow('warning:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`);
 
 module.exports = { Exception, LineException, info, success, argify, findIndices, isMacro, normalize, setOf, warn };

@@ -1,4 +1,7 @@
 # ABCO-1
+
+[![js-semistandard-style](https://img.shields.io/badge/code%20style-semistandard-brightgreen.svg?style=flat-square)](https://github.com/standard/semistandard)
+
 the **ABCO-1** is a hardware implementation of the OISC [abcout](https://esolangs.org/wiki/Abcout).
 
 each `abcout` instruction takes the form `A, B, C` and adds memory address `B` to memory address `A`; execution will then branch to memory address `C` if the result is greater than 255, or to the next instruction in sequence otherwise. it is assumed that addresses `A` and `B` both contain an unsigned 8-bit integer.

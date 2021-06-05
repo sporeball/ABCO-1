@@ -5,41 +5,40 @@
   MIT license
 */
 
-const Assembler = require("./index.js");
-const {Exception, LineException, ...Util} = require("./util.js");
+const Assembler = require('./index.js');
+const { Exception } = require('./util.js');
 
-const chalk = require("chalk");
-const fs = require("fs");
-const eol = require("eol");
+const fs = require('fs');
+const eol = require('eol');
 
-const args = require("yeow")({
-  "file": {
-    type: "file",
-    extensions: ".abcout",
+const args = require('yeow')({
+  file: {
+    type: 'file',
+    extensions: '.abcout',
     required: true,
-    missing: "a file must be passed",
-    invalid: "improper file format"
+    missing: 'a file must be passed',
+    invalid: 'improper file format'
   },
-  "out": {
-    type: "file",
-    extensions: ".bin",
-    aliases: "-o / --out",
-    default: "rom.bin",
-    invalid: "improper file format"
+  out: {
+    type: 'file',
+    extensions: '.bin',
+    aliases: '-o / --out',
+    default: 'rom.bin',
+    invalid: 'improper file format'
   }
 });
 
 let contents;
 
-function assembler() {
-  let {file} = args;
+function assembler () {
+  const { file } = args;
 
   // get file contents
   // also normalizes line endings to CRLF
   try {
-    contents = eol.lf(fs.readFileSync(file, {encoding: "utf-8"}, function(){}));
+    contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }, () => {}));
   } catch (e) {
-    throw new Exception("file not found");
+    throw new Exception('file not found');
   }
 
   try {
