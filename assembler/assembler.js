@@ -41,11 +41,11 @@ function assembler () {
     throw new Exception('file not found');
   }
 
-  try {
-    Assembler.assemble(contents, args);
-  } catch (e) {
-    console.log(e.message);
-  }
+  Assembler.assemble(contents, args);
 }
 
-assembler();
+try {
+  assembler();
+} catch (e) {
+  console.log(e.message);
+}

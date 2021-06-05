@@ -6,8 +6,8 @@
 */
 
 const Simulator = require('./index.js');
+const { Exception } = require('./util.js');
 
-const chalk = require('chalk');
 const fs = require('fs');
 
 const args = require('yeow')({
@@ -27,17 +27,16 @@ function simulator () {
 
   // get file contents
   try {
-    contents = fs.readFileSync(file, { encoding: 'utf-8' }, () => {});
+    contents = fs.readFileSync(file, { encoding: 'utf-8' });
   } catch (e) {
-    runnerErr('file not found');
+    throw new Exception('file not found');
   }
 
   Simulator.parse(contents);
 }
 
-const runnerErr = str => {
-  console.log(chalk.red('error: ') + str);
-  process.exit(1);
-};
-
-simulator();
+try {
+  simulator();
+} catch (e) {
+  console.log(e.message);
+}
