@@ -21,6 +21,9 @@ let contents; // file contents
 function assemble (input, args) {
   contents = input;
   let bytes = '';
+  // ROM address of the instruction we are looking at
+  // used in final pass
+  let ip = 0;
 
   if (contents.slice(-1) === '\n') {
     contents = contents.slice(0, -1);
@@ -108,13 +111,15 @@ function assemble (input, args) {
     }
 
     const args = Util.argify(line);
-    if (args.length !== 3) { throw new LineException('wrong number of arguments'); }
+    if (args.length !== 2 && args.length !== 3) { throw new LineException('wrong number of arguments'); }
     const C = args[2];
 
-    // if the third argument is a label...
-    if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
+    console.log(C);
+
+    if (C === undefined) {
+      args[2] = ip + 6;
+    } else if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
       if (global.labels[C] === undefined) { throw new LineException('label not found'); }
-      // update it if it is found
       args[2] = global.labels[C];
     }
 
@@ -135,6 +140,9 @@ function assemble (input, args) {
         throw new LineException('argument cannot be negative');
       }
     }
+
+    ip += 6;
+    console.log(ip);
   }
 
   // add halt condition
