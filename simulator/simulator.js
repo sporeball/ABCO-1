@@ -5,12 +5,13 @@
   MIT license
 */
 
-const Simulator = require('./index.js');
-const { Exception } = require('./util.js');
+import simulate from './index.js';
+import { Exception } from './util.js';
 
-const fs = require('fs');
+import fs from 'fs';
+import yeow from 'yeow';
 
-const args = require('yeow')({
+const args = yeow({
   file: {
     type: 'file',
     extensions: '.bin',
@@ -32,7 +33,7 @@ function simulator () {
     throw new Exception('file not found');
   }
 
-  Simulator.parse(contents);
+  simulate(contents);
 }
 
 try {

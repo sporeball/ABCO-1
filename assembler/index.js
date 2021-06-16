@@ -6,11 +6,12 @@
 */
 
 // dependencies
-const Label = require('./label.js');
-const Macro = require('./macro.js');
-const { Exception, LineException, ...Util } = require('./util.js');
+import * as Label from './label.js';
+import * as Macro from './macro.js';
+import * as Util from './util.js';
+import { LineException } from './util.js';
 
-const fs = require('fs');
+import fs from 'fs';
 
 global.lineNo = 1;
 global.labels = {};
@@ -18,7 +19,7 @@ global.macros = {};
 
 let contents; // file contents
 
-function assemble (input, args) {
+export default function assemble (input, args) {
   contents = input;
   let bytes = '';
   // ROM address of the instruction we are looking at
@@ -153,5 +154,3 @@ function assemble (input, args) {
   fs.writeFile(args.out, bytes, 'binary', () => {});
   Util.success('finished!');
 }
-
-exports.assemble = assemble;

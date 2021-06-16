@@ -5,9 +5,6 @@
   MIT license
 */
 
-function parse (code) {
+export default function simulate (code) {
   console.log(`code: ${code}`);
 }
-
-// exports
-exports.parse = parse;

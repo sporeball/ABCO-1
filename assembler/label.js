@@ -5,13 +5,14 @@
   MIT license
 */
 
-const { LineException, ...Util } = require('./util.js');
+import * as Util from './util.js';
+import { LineException } from './util.js';
 
 /**
  * initialize a label given a line containing one
  * @param {String} label
  */
-function initialize (label) {
+export function initialize (label) {
   label = label.slice(0, -1);
 
   validate(label);
@@ -33,5 +34,3 @@ function validate (label) {
 
   if (global.macros[label] !== undefined) { Util.warn(`label "${label}" shares its name with a macro; this is not recommended`); }
 }
-
-module.exports = { initialize };

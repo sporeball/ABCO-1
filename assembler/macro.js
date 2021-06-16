@@ -5,13 +5,14 @@
   MIT license
 */
 
-const { LineException, ...Util } = require('./util.js');
+import * as Util from './util.js';
+import { LineException } from './util.js';
 
 /**
  * create a macro object from a multiline string containing one
  * @param {String} macro
  */
-function create (macro) {
+export function create (macro) {
   const definition = macro.split('\n')[0];
   const dependencies = [];
 
@@ -64,7 +65,7 @@ function create (macro) {
  * @param {boolean} [top] whether this expansion is occurring in the main code
  * @returns {Array}
  */
-function expand (instruction, top = false) {
+export function expand (instruction, top = false) {
   // macro_name A, B, C, ...
   const [name] = instruction.split(' ');
   if (global.macros[name] === undefined) { throw new LineException(`macro "${name}" is undefined`); }
@@ -93,5 +94,3 @@ function validate (definition) {
   // parameter validation
   if (isNaN(params)) { throw new LineException('macro parameter count missing or invalid'); }
 }
-
-module.exports = { create, expand };

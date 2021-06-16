@@ -5,13 +5,14 @@
   MIT license
 */
 
-const Assembler = require('./index.js');
-const { Exception } = require('./util.js');
+import assemble from './index.js';
+import { Exception } from './util.js';
 
-const fs = require('fs');
-const eol = require('eol');
+import fs from 'fs';
+import eol from 'eol';
+import yeow from 'yeow';
 
-const args = require('yeow')({
+const args = yeow({
   file: {
     type: 'file',
     extensions: '.abcout',
@@ -41,7 +42,7 @@ function assembler () {
     throw new Exception('file not found');
   }
 
-  Assembler.assemble(contents, args);
+  assemble(contents, args);
 }
 
 try {

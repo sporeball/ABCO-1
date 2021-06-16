@@ -2,7 +2,11 @@
   "name": "abco-1-simulator",
   "version": "1.0.0",
   "description": "a simulation of the ABCO-1 specification",
-  "main": "index.js",
+  "type": "module",
+  "exports": "./index.js",
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

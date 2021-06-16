@@ -5,12 +5,10 @@
   MIT license
 */
 
-const chalk = require('chalk');
+import chalk from 'chalk';
 
-class Exception {
+export class Exception {
   constructor (message) {
     this.message = `${chalk.red('error:')} ${message}`;
   }
 }
-
-module.exports = { Exception };
