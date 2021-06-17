@@ -38,6 +38,12 @@ export default function assemble (input, args) {
     .map(x => Util.normalize(x)) // collapse whitespace within
     .map(x => x.startsWith('abcout') && !x.endsWith(':') ? x.slice(7) : x); // remove "abcout"
 
+  // cast hex literals to numbers
+  contents.forEach(x => {
+    x = Util.parseHex(x);
+    global.lineNo++;
+  });
+
   // create all macros
   for (const macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
     const definition = macro.split('\n')[0]; // the definition line

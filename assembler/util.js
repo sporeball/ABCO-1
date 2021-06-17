@@ -66,6 +66,24 @@ export const isSeparated = args => args.findIndex(x => !x.match(/^[^, ]+,$/)) + 
 export const normalize = str => str.split(' ').filter(x => x !== '').join(' ');
 
 /**
+ * cast all hex literals (0xABC) in a string to numbers
+ * immediately throws if this results in NaN
+ * @param str
+ * @returns {String}
+ */
+export const parseHex = str => {
+  str = str.replace(/0x[^ \n,]+/gm, match => {
+    const cast = Number(match);
+    if (isNaN(cast)) {
+      throw new LineException('invalid hex literal');
+    } else {
+      return cast;
+    }
+  });
+  return str;
+};
+
+/**
  * return all array values matching a regular expression
  * @param {RegExp} exp
  * @param {Array} arr
