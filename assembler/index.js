@@ -26,7 +26,7 @@ export default function assemble (input, args) {
   // used in final pass
   let ip = 0;
 
-  if (contents.slice(-1) === '\n') {
+  if (contents.endsWith('\n')) {
     contents = contents.slice(0, -1);
   }
 
@@ -34,13 +34,13 @@ export default function assemble (input, args) {
   contents = contents.replace(/;.*$/gm, '')
     .replace(/\$/gm, '0x')
     .split('\n')
-    .map(x => x.trim())
-    .map(x => Util.normalize(x)) // collapse whitespace within
-    .map(x => x.startsWith('abcout') && !x.endsWith(':') ? x.slice(7) : x); // remove "abcout"
+    .map(line => line.trim())
+    .map(line => Util.normalize(line)) // collapse whitespace within
+    .map(line => line.startsWith('abcout') && !line.endsWith(':') ? line.slice(7) : line); // remove "abcout"
 
   // cast hex literals to numbers
-  contents.forEach(x => {
-    x = Util.parseHex(x);
+  contents.forEach(line => {
+    line = Util.parseHex(line);
     global.lineNo++;
   });
 
@@ -48,14 +48,13 @@ export default function assemble (input, args) {
   for (const macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
     const definition = macro.split('\n')[0]; // the definition line
     global.lineNo = contents.indexOf(definition) + 1;
-
     Macro.create(macro);
   }
 
   // array of array of empty strings
   // formed by taking the code's macro definitions, and replacing the lines of each
   const blanks = (contents.join('\n').match(/%macro .*?%endmacro/gs) || [])
-    .map(x => x.split('\n').map(y => ''));
+    .map(macro => macro.split('\n').map(line => ''));
 
   // replace any line that's part of a macro definition with the empty string
   contents = contents.join('\n')
@@ -75,25 +74,24 @@ export default function assemble (input, args) {
       global.lineNo++;
       throw new LineException('two labels cannot reference the same address');
     }
-
     Label.initialize(label);
   }
 
   global.lineNo = 0;
 
   // expand all macros
-  contents = contents.flatMap(x => {
+  contents = contents.flatMap(line => {
     global.lineNo++;
-    if (Util.isMacro(x)) {
-      return Macro.expand(x, true);
+    if (Util.isMacro(line)) {
+      return Macro.expand(line, true);
     } else {
-      return x;
+      return line;
     }
   });
 
   // set all labels
-  const filtered = contents.filter(x => x !== '');
-  for (let label of filtered.filter(x => x.match(/^.+:$/))) {
+  const filtered = contents.filter(line => line !== '');
+  for (let label of filtered.filter(line => line.match(/^.+:$/))) {
     const index = filtered.indexOf(label);
     label = label.slice(0, -1); // remove colon
     global.labels[label] = index * 6;
@@ -101,7 +99,7 @@ export default function assemble (input, args) {
   }
 
   // replace any label declaration with the empty string
-  contents = contents.map(x => x.match(/^.+:$/) ? '' : x);
+  contents = contents.map(line => line.match(/^.+:$/) ? '' : line);
 
   global.lineNo = 0;
 
@@ -120,8 +118,6 @@ export default function assemble (input, args) {
     const args = Util.argify(line);
     if (args.length !== 2 && args.length !== 3) { throw new LineException('wrong number of arguments'); }
     const C = args[2];
-
-    console.log(C);
 
     if (C === undefined) {
       args[2] = ip + 6;
@@ -149,7 +145,6 @@ export default function assemble (input, args) {
     }
 
     ip += 6;
-    console.log(ip);
   }
 
   // add halt condition

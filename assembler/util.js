@@ -52,7 +52,7 @@ export const findIndices = (val, arr) => arr.map((x, i) => x === val ? i + 1 : '
 export const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\n:]*$/gm);
 
 /**
- * validates comma separation
+ * validate comma separation
  * @param {Array} args
  * @returns {boolean}
  */
