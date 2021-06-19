@@ -15,37 +15,46 @@ import { LineException } from './util.js';
  * @param {Array} contents
  */
 export function prep (contents) {
-  global.lineNo = 1;
-  let stack = [];
+  global.lineNo = 0;
+  const stack = [];
+  const openings = [];
   let maxLength = 0;
-  let opening, maxNestedOpening;
+  let maxNestedOpening;
 
-  contents.forEach(line => {
-    if (line.startsWith('%')) {
-      if (line.startsWith('%macro ')) {
-        stack.push(line);
-        opening = line;
-      } else if (line === '%endmacro') {
-        if (stack.length === 0) {
-          throw new LineException('unmatched macro closing statement');
-        }
-        stack.shift();
-      } else {
-        throw new LineException('malformed macro definition');
-      }
+  for (const line of contents) {
+    global.lineNo++;
+    if (!line.startsWith('%')) {
+      continue;
     }
+
+    if (line.startsWith('%macro ')) {
+      if (openings.includes(line)) {
+        throw new LineException('an identical opening statement already exists');
+      }
+      stack.push(line);
+      openings.push(line);
+    } else if (line === '%endmacro') {
+      if (stack.length === 0) {
+        throw new LineException('unmatched macro closing statement');
+      }
+      stack.pop();
+    } else {
+      throw new LineException('malformed macro definition');
+    }
+
     if (stack.length > maxLength) {
       maxLength = stack.length;
-      maxNestedOpening = opening;
+      maxNestedOpening = openings[openings.length - 1];
     }
-    global.lineNo++;
-  });
+  }
 
+  // if something is left on the stack, the statements are unbalanced
   if (stack.length > 0) {
     global.lineNo = contents.indexOf(stack[stack.length - 1]) + 1;
     throw new LineException('unmatched macro opening statement');
   }
 
+  // only complain about nested macros if the statements are balanced
   if (maxLength > 1) {
     global.lineNo = contents.indexOf(maxNestedOpening) + 1;
     throw new LineException('macros cannot define other macros');
