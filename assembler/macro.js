@@ -9,8 +9,8 @@ import * as Util from './util.js';
 import { LineException } from './util.js';
 
 /**
- * "prep" the file contents
- * this means asserting that all macros are properly balanced,
+ * macro preparation function
+ * asserts that all macro definitions are properly balanced,
  * and that (at a minimum) all openings begin with '%macro'
  * @param {Array} contents
  */

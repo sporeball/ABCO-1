@@ -44,6 +44,7 @@ export default function assemble (input, args) {
     global.lineNo++;
   });
 
+  // macro preparation step
   Macro.prep(contents);
 
   // create all macros
@@ -53,23 +54,15 @@ export default function assemble (input, args) {
     global.lineNo = opening;
 
     // create the macro
-    Macro.create(macro, contents);
+    Macro.create(macro);
     // blank out the lines it consists of
     for (let i = opening; i <= global.lineNo; i++) {
       contents[i - 1] = '';
     }
   }
 
-  // initialize all labels
-  for (const label of contents.filter(x => x.match(/^.+:$/))) {
-    global.lineNo = contents.indexOf(label) + 1;
-    // stupid and confusing hack ahead
-    if (contents[global.lineNo].match(/^.+:$/)) {
-      global.lineNo++;
-      throw new LineException('two labels cannot reference the same address');
-    }
-    Label.initialize(label);
-  }
+  // label preparation step
+  Label.prep(contents);
 
   global.lineNo = 0;
 
