@@ -49,24 +49,16 @@ export default function assemble (input, args) {
   // create all macros
   for (const macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
     const definition = macro.split('\n')[0]; // the definition line
-    global.lineNo = contents.indexOf(definition) + 1;
-    Macro.create(macro);
+    const opening = contents.indexOf(definition) + 1;
+    global.lineNo = opening;
+
+    // create the macro
+    Macro.create(macro, contents);
+    // blank out the lines it consists of
+    for (let i = opening; i <= global.lineNo; i++) {
+      contents[i - 1] = '';
+    }
   }
-
-  // array of array of empty strings
-  // formed by taking the code's macro definitions, and replacing the lines of each
-  const blanks = (contents.join('\n').match(/%macro .*?%endmacro/gs) || [])
-    .map(macro => macro.split('\n').map(line => ''));
-
-  // replace any line that's part of a macro definition with the empty string
-  contents = contents.join('\n')
-    .split(/%macro.*?%endmacro/gs) // split on macro
-    .map((x, i) => [x, blanks[i]]) // interleave with blanks
-    .flat(2)
-    .slice(0, -1) // remove last element (undefined)
-    .map(x => x.match(/^(\n)+$/) ? '' : x) // normalize any string consisting only of line endings
-    .map(x => x.split('\n')) // split on the line endings that remain
-    .flat(Infinity); // and flatten
 
   // initialize all labels
   for (const label of contents.filter(x => x.match(/^.+:$/))) {

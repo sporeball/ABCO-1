@@ -72,7 +72,6 @@ export function create (macro) {
   // yield array with macro name, parameter count, and its lines
   macro = macro.split('\n')
     .map((x, i) => i === 0 ? x.split(' ').slice(1) : x)
-    .slice(0, -1)
     .flat();
 
   let [name, params, ...lines] = macro;
@@ -92,14 +91,14 @@ export function create (macro) {
   validate(definition);
 
   // expand the macros this macro depends on
-  lines = lines.flatMap(x => {
+  lines = lines.flatMap(line => {
     global.lineNo++;
-    if (Util.isMacro(x)) {
-      const dep = x.split(' ').filter(y => y !== '')[0];
+    if (Util.isMacro(line)) {
+      const dep = line.split(' ').filter(x => x !== '')[0];
       dependencies.push(dep);
-      return expand(x);
+      return expand(line);
     } else {
-      return x;
+      return line;
     }
   });
 
@@ -108,7 +107,7 @@ export function create (macro) {
     calls: 0,
     params: Number(params),
     dependencies: dependencies,
-    lines: lines
+    lines: lines.slice(0, -1)
   };
 }
 
