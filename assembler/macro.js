@@ -9,6 +9,50 @@ import * as Util from './util.js';
 import { LineException } from './util.js';
 
 /**
+ * "prep" the file contents
+ * this means asserting that all macros are properly balanced,
+ * and that (at a minimum) all openings begin with '%macro'
+ * @param {Array} contents
+ */
+export function prep (contents) {
+  global.lineNo = 1;
+  let stack = [];
+  let maxLength = 0;
+  let opening, maxNestedOpening;
+
+  contents.forEach(line => {
+    if (line.startsWith('%')) {
+      if (line.startsWith('%macro ')) {
+        stack.push(line);
+        opening = line;
+      } else if (line === '%endmacro') {
+        if (stack.length === 0) {
+          throw new LineException('unmatched macro closing statement');
+        }
+        stack.shift();
+      } else {
+        throw new LineException('malformed macro definition');
+      }
+    }
+    if (stack.length > maxLength) {
+      maxLength = stack.length;
+      maxNestedOpening = opening;
+    }
+    global.lineNo++;
+  });
+
+  if (stack.length > 0) {
+    global.lineNo = contents.indexOf(stack[stack.length - 1]) + 1;
+    throw new LineException('unmatched macro opening statement');
+  }
+
+  if (maxLength > 1) {
+    global.lineNo = contents.indexOf(maxNestedOpening) + 1;
+    throw new LineException('macros cannot define other macros');
+  }
+}
+
+/**
  * create a macro object from a multiline string containing one
  * @param {String} macro
  */

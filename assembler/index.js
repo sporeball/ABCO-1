@@ -44,6 +44,8 @@ export default function assemble (input, args) {
     global.lineNo++;
   });
 
+  Macro.prep(contents);
+
   // create all macros
   for (const macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
     const definition = macro.split('\n')[0]; // the definition line
