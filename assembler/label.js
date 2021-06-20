@@ -50,7 +50,7 @@ export function prep (contents) {
 }
 
 /**
- * initialize a label with a certain name 
+ * initialize a label with a certain name
  * @param {String} name
  */
 function initialize (name) {

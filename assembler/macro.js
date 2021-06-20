@@ -66,29 +66,20 @@ export function prep (contents) {
  * @param {String} macro
  */
 export function create (macro) {
-  const definition = macro.split('\n')[0];
+  macro = macro.split('\n');
   const dependencies = [];
 
-  // yield array with macro name, parameter count, and its lines
-  macro = macro.split('\n')
-    .map((x, i) => i === 0 ? x.split(' ').slice(1) : x)
-    .flat();
+  // should yield an array with name and parameter count, if valid
+  const opening = macro[0].split(' ').slice(1);
+  if (opening.length > 2) {
+    throw new LineException('macro opening statement has too many parts');
+  }
+
+  // move the opening elements to the front of the array
+  macro.splice(0, 1, ...opening);
 
   let [name, params, ...lines] = macro;
-
-  if (global.macros[name] !== undefined) {
-    throw new LineException(`macro "${name}" already defined`);
-  }
-
-  // catch circular dependence
-  const idx = lines.findIndex(x => x.split(' ')[0] === name);
-  if (idx !== -1) {
-    global.lineNo += (idx + 1);
-    throw new LineException(`macro "${name}" cannot call itself`);
-  }
-
-  // validate the definition line
-  validate(definition);
+  validate(name, params, lines);
 
   // expand the macros this macro depends on
   lines = lines.flatMap(line => {
@@ -133,16 +124,25 @@ export function expand (instruction, top = false) {
 }
 
 /**
- * validate the macro with the given definition line
- * @param {String} definition
+ * validate a macro based on its parts
+ * @param {String} name
+ * @param {Number} params
+ * @param {Array} lines
  */
-function validate (definition) {
-  const [name, params] = definition.split(' ').slice(1);
-
+function validate (name, params, lines) {
   // name validation
   if (name === 'abcout') { throw new LineException('"abcout" cannot be used as a macro name'); }
   if (!name.match(/^[a-z_]([a-z0-9_]+)?$/)) { throw new LineException('invalid macro name'); }
+  if (global.macros[name] !== undefined) throw new LineException(`macro "${name}" already defined`);
 
   // parameter validation
   if (isNaN(params)) { throw new LineException('macro parameter count missing or invalid'); }
+
+  // lines validation
+  // catch circular dependence
+  const idx = lines.findIndex(x => x.split(' ')[0] === name);
+  if (idx !== -1) {
+    global.lineNo += (idx + 1);
+    throw new LineException(`macro "${name}" cannot call itself`);
+  }
 }
