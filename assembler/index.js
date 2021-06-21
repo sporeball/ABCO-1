@@ -48,15 +48,16 @@ export default function assemble (input, args) {
   Macro.prep(contents);
 
   // create all macros
-  for (const macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
-    const definition = macro.split('\n')[0]; // the definition line
-    const opening = contents.indexOf(definition) + 1;
-    global.lineNo = opening;
+  for (let macro of contents.join('\n').match(/%macro .*?%endmacro/gs) || []) {
+    macro = macro.split('\n');
+    const opening = macro[0];
+    const openingIdx = contents.indexOf(opening) + 1;
+    global.lineNo = openingIdx;
 
     // create the macro
     Macro.create(macro);
     // blank out the lines it consists of
-    for (let i = opening; i <= global.lineNo; i++) {
+    for (let i = openingIdx; i <= global.lineNo; i++) {
       contents[i - 1] = '';
     }
   }
@@ -103,17 +104,23 @@ export default function assemble (input, args) {
     }
 
     const args = Util.argify(line);
-    if (args.length !== 2 && args.length !== 3) { throw new LineException('wrong number of arguments'); }
     const C = args[2];
+    if (args.length !== 2 && args.length !== 3) {
+      throw new LineException('wrong number of arguments');
+    }
 
     if (C === undefined) {
       args[2] = ip + 6;
     } else if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-      if (global.labels[C] === undefined) { throw new LineException('label not found'); }
+      if (global.labels[C] === undefined) {
+        throw new LineException('label not found');
+      }
       args[2] = global.labels[C];
     }
 
-    if (args[2] % 6 !== 0) { throw new LineException('invalid value for argument C'); }
+    if (args[2] % 6 !== 0) {
+      throw new LineException('invalid value for argument C');
+    }
 
     for (const arg of args) {
       const n = Number(arg);

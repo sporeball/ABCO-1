@@ -54,7 +54,6 @@ export function prep (contents) {
  * @param {String} name
  */
 function initialize (name) {
-  // initialize with a placeholder value
-  // this gets updated later
+  // this is a placeholder value, and gets updated later
   global.labels[name] = -1;
 }
