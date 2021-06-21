@@ -25,15 +25,11 @@ export class LineException {
 }
 
 /**
- * finalize the arguments of an instruction from their intermediate form
- * @param args
+ * cast a string containing arguments to an array
+ * @param {String} str
  * @returns {Array}
  */
-export const argify = args => {
-  if (typeof args === 'string') { args = args.split(' '); }
-  if (!isSeparated(args)) { throw new LineException('arguments must be comma-separated'); }
-  return args.map(x => x.endsWith(',') ? x.slice(0, -1) : x);
-};
+export const argify = str => str.replace(/,/gm, '').split(' ');
 
 /**
  * find all indices of a value in an array (1-indexed)
@@ -52,11 +48,24 @@ export const findIndices = (val, arr) => arr.map((x, i) => x === val ? i + 1 : '
 export const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\n:]*$/gm);
 
 /**
- * validate comma separation
+ * return whether the arguments of an instruction are properly comma-separated
  * @param {Array} args
+ * @param {boolean} isMacro whether the instruction is a macro
  * @returns {boolean}
  */
-export const isSeparated = args => args.findIndex(x => !x.match(/^[^, ]+,$/)) + 1 === args.length;
+export const isSeparated = (args, isMacro) => {
+  // if the instruction is a macro...
+  if (isMacro) {
+    // the first argument should not end with a comma
+    if (args[0].endsWith(',')) {
+      return false;
+    }
+    // drop the macro name
+    args = args.slice(1);
+  }
+  // the first remaining argument not ending with a comma should be the very last one
+  return args.findIndex(x => !x.match(/^[^,]+,$/)) === args.length - 1;
+};
 
 /**
  * remove consecutive spaces in a string

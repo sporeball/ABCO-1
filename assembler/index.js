@@ -6,14 +6,16 @@
 */
 
 // dependencies
+import * as Instruction from './instruction.js';
 import * as Label from './label.js';
 import * as Macro from './macro.js';
 import * as Util from './util.js';
-import { LineException } from './util.js';
+import { Exception } from './util.js';
 
 import fs from 'fs';
 
 global.lineNo = 1;
+global.ip = 0;
 global.labels = {};
 global.macros = {};
 
@@ -22,9 +24,6 @@ let contents; // file contents
 export default function assemble (input, args) {
   contents = input;
   let bytes = '';
-  // ROM address of the instruction we are looking at
-  // used in final pass
-  let ip = 0;
 
   if (contents.endsWith('\n')) {
     contents = contents.slice(0, -1);
@@ -36,7 +35,7 @@ export default function assemble (input, args) {
     .split('\n')
     .map(line => line.trim())
     .map(line => Util.normalize(line)) // collapse whitespace within
-    .map(line => line.startsWith('abcout') && !line.endsWith(':') ? line.slice(7) : line); // remove "abcout"
+    .map(line => line.startsWith('abcout ') ? line.slice(7) : line); // remove "abcout"
 
   // cast hex literals to numbers
   contents.forEach(line => {
@@ -64,6 +63,9 @@ export default function assemble (input, args) {
 
   // label preparation step
   Label.prep(contents);
+
+  // instruction preparation step
+  Instruction.prep(contents);
 
   global.lineNo = 0;
 
@@ -100,45 +102,29 @@ export default function assemble (input, args) {
     // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
     // this leads to a hard limit of 5,460 instructions
     if (bytes.length === 32760) {
-      throw new LineException('too many instructions');
+      throw new Exception('too many instructions');
     }
 
-    const args = Util.argify(line);
-    const C = args[2];
-    if (args.length !== 2 && args.length !== 3) {
-      throw new LineException('wrong number of arguments');
+    const args = Util.argify(line).map(Number);
+    // replace C if needed
+    if (args[2] === undefined) {
+      args[2] = global.ip + 6;
     }
-
-    if (C === undefined) {
-      args[2] = ip + 6;
-    } else if (C.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-      if (global.labels[C] === undefined) {
-        throw new LineException('label not found');
-      }
-      args[2] = global.labels[C];
-    }
-
-    if (args[2] % 6 !== 0) {
-      throw new LineException('invalid value for argument C');
+    if (isNaN(args[2])) {
+      args[2] = global.labels[args[2]];
     }
 
     for (const arg of args) {
-      const n = Number(arg);
-      if (isNaN(n)) { throw new LineException('non-numeric argument given'); }
-      if (n > 32767) {
-        throw new LineException('argument too big');
-      } else if (n > 255) {
-        bytes += String.fromCharCode(n >> 8); // upper 8 bits of n
-        bytes += String.fromCharCode(n & 255); // lower 8 bits of n
-      } else if (n >= 0) {
-        bytes += String.fromCharCode(0x00);
-        bytes += String.fromCharCode(n);
+      if (arg > 255) {
+        bytes += String.fromCharCode(arg >> 8); // upper 8 bits of n
+        bytes += String.fromCharCode(arg & 255); // lower 8 bits of n
       } else {
-        throw new LineException('argument cannot be negative');
+        bytes += String.fromCharCode(0x00);
+        bytes += String.fromCharCode(arg);
       }
     }
 
-    ip += 6;
+    global.ip += 6;
   }
 
   // add halt condition

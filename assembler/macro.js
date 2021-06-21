@@ -5,6 +5,7 @@
   MIT license
 */
 
+import * as Instruction from './instruction.js';
 import * as Util from './util.js';
 import { LineException } from './util.js';
 
@@ -86,8 +87,12 @@ export function create (macro) {
     if (Util.isMacro(line)) {
       const dep = line.split(' ').filter(x => x !== '')[0];
       dependencies.push(dep);
+      Instruction.validate(line, true);
       return expand(line);
     } else {
+      if (line !== '%endmacro') {
+        Instruction.validate(line, false);
+      }
       return line;
     }
   });
@@ -110,9 +115,6 @@ export function create (macro) {
 export function expand (instruction, top = false) {
   // macro_name A, B, C, ...
   const [name] = instruction.split(' ');
-  if (global.macros[name] === undefined) {
-    throw new LineException(`macro "${name}" is undefined`);
-  }
 
   if (top) {
     global.macros[name].calls++;
@@ -136,7 +138,7 @@ function validate (name, params, lines) {
     throw new LineException('"abcout" cannot be used as a macro name');
   }
   if (!name.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-    throw new LineException('invalid macro name');
+    throw new LineException(`invalid macro name "${name}"`);
   }
   if (global.macros[name] !== undefined) {
     throw new LineException(`macro "${name}" already defined`);
