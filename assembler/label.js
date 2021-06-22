@@ -6,7 +6,7 @@
 */
 
 import * as Util from './util.js';
-import { LineException } from './util.js';
+import { isLabel, LineException } from './util.js';
 
 /**
  * label preparation function
@@ -20,7 +20,7 @@ export function prep (contents) {
 
   for (const line of contents) {
     global.lineNo++;
-    if (!line.endsWith(':')) {
+    if (!isLabel(line)) {
       continue;
     }
 
@@ -31,10 +31,11 @@ export function prep (contents) {
       throw new LineException(`label "${label}" must be followed by an instruction`);
     }
 
+    // name validation
     if (label === 'abcout') {
       throw new LineException('"abcout" cannot be used as a label name');
     } else if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-      throw new LineException('invalid label name');
+      throw new LineException(`invalid label name "${label}`);
     } else if (labels.includes(label)) {
       throw new LineException(`label "${label}" already in use`);
     } else {

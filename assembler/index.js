@@ -10,7 +10,7 @@ import * as Instruction from './instruction.js';
 import * as Label from './label.js';
 import * as Macro from './macro.js';
 import * as Util from './util.js';
-import { Exception } from './util.js';
+import { Exception, isBlank, isLabel, isMacro } from './util.js';
 
 import fs from 'fs';
 
@@ -56,7 +56,7 @@ export default function assemble (input, args) {
     // create the macro
     Macro.create(macro);
     // blank out the lines it consists of
-    for (let i = openingIdx; i <= global.lineNo; i++) {
+    for (let i = openingIdx; i <= global.lineNo + 1; i++) {
       contents[i - 1] = '';
     }
   }
@@ -72,17 +72,17 @@ export default function assemble (input, args) {
   // expand all macros
   contents = contents.flatMap(line => {
     global.lineNo++;
-    if (Util.isMacro(line)) {
+    if (isMacro(line)) {
       return Macro.expand(line, true);
     } else {
       return line;
     }
   });
 
-  contents = contents.filter(line => line !== '');
+  contents = contents.filter(line => !isBlank(line));
 
   // set all labels
-  for (let label of contents.filter(line => line.endsWith(':'))) {
+  for (let label of contents.filter(line => isLabel(line))) {
     const index = contents.indexOf(label);
     label = label.slice(0, -1); // remove colon
     global.labels[label] = index * 6;

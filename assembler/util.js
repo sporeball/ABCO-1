@@ -32,30 +32,38 @@ export class LineException {
 export const argify = str => str.replace(/,/gm, '').split(' ');
 
 /**
- * find all indices of a value in an array (1-indexed)
- * @param val
- * @param {Array} arr
- * @returns {Array}
- */
-export const findIndices = (val, arr) => arr.map((x, i) => x === val ? i + 1 : '').filter(x => x !== '');
-
-/**
- * return whether an instruction is a macro (anything other than abcout)
- * does not validate
- * @param instr
+ * @param line
  * @returns {boolean}
  */
-export const isMacro = instr => instr.match(/^[a-z_]([a-z0-9_]+)?[^\n:]*$/gm);
+export const isAbcout = line => line.match(/^\d+(,| )?|^[^, ]+?,/);
+
+/**
+ * @param line
+ * @returns {boolean}
+ */
+export const isBlank = line => line === '';
+
+/**
+ * @param line
+ * @returns {boolean}
+ */
+export const isLabel = line => line.endsWith(':');
+
+/**
+ * @param line
+ * @returns {boolean}
+ */
+export const isMacro = line => line.match(/^[^\d, %]+ |^[^\d, :%]+$/);
 
 /**
  * return whether the arguments of an instruction are properly comma-separated
  * @param {Array} args
- * @param {boolean} isMacro whether the instruction is a macro
  * @returns {boolean}
  */
-export const isSeparated = (args, isMacro) => {
+export const isSeparated = args => {
+  const instruction = args.join(' ');
   // if the instruction is a macro...
-  if (isMacro) {
+  if (isMacro(instruction)) {
     // the first argument should not end with a comma
     if (args[0].endsWith(',')) {
       return false;
@@ -64,7 +72,7 @@ export const isSeparated = (args, isMacro) => {
     args = args.slice(1);
   }
   // the first remaining argument not ending with a comma should be the very last one
-  return args.findIndex(x => !x.match(/^[^,]+,$/)) === args.length - 1;
+  return args.findIndex(x => !x.endsWith(',')) === args.length - 1;
 };
 
 /**
@@ -93,15 +101,9 @@ export const parseHex = str => {
 };
 
 /**
- * return all array values matching a regular expression
- * @param {RegExp} exp
- * @param {Array} arr
- * @returns {Set}
- */
-export const setOf = (exp, arr) => [...new Set(arr.filter(x => x.match(exp)))];
-
-/**
  * produce a warning
  * @param {String} message
  */
-export const warn = message => console.log(`${chalk.yellow('warning:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`);
+export const warn = message => {
+  console.log(`${chalk.yellow('warning:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`);
+};

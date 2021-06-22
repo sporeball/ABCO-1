@@ -6,38 +6,36 @@
 */
 
 import * as Util from './util.js';
-import { LineException } from './util.js';
+import { isAbcout, isBlank, isLabel, LineException } from './util.js';
 
 export function prep (contents) {
   global.lineNo = 0;
 
   for (const line of contents) {
     global.lineNo++;
-
-    if (line === '' || line.endsWith(':')) {
+    if (isBlank(line) || isLabel(line)) {
       continue;
     }
-    // edge case
-    if (line === 'abcout') {
-      throw new LineException('wrong number of arguments (0 given)');
-    }
-
-    const isMacro = !line.match(/^\d+(,| )|^[^, ]+?,/); // aaaaaa
-    validate(line, isMacro);
+    validate(line);
   }
 }
 
 /**
  * validate an instruction
  * @param {String} instruction
- * @param {boolean} isMacro
  */
-export function validate (instruction, isMacro) {
+export function validate (instruction) {
+  // edge case
+  if (instruction === 'abcout') {
+    throw new LineException('wrong number of arguments (0 given)');
+  }
+
   let args = instruction.split(' ');
-  if (!Util.isSeparated(args, isMacro)) {
+
+  if (!Util.isSeparated(args)) {
     throw new LineException('arguments must be comma-separated');
   }
-  args = args.map(x => x.replace(',', ''));
+  args = args.map(arg => arg.replace(',', ''));
 
   // validate the arguments that are already numbers
   for (const arg of args.filter(arg => isFinite(arg))) {
@@ -48,21 +46,7 @@ export function validate (instruction, isMacro) {
     }
   }
 
-  if (isMacro) {
-    // name validation
-    const name = args[0];
-    if (!name.match(/[a-z_]([a-z0-9_]+)?/)) {
-      throw new LineException(`invalid macro name "${name}"`);
-    }
-    if (global.macros[name] === undefined) {
-      throw new LineException(`macro "${name}" is undefined`);
-    }
-
-    // arguments validation
-    if (args.length - 1 !== global.macros[name].params) {
-      throw new LineException(`wrong number of arguments (${args.length - 1} given)`);
-    }
-  } else {
+  if (isAbcout(instruction)) {
     if (args.length !== 2 && args.length !== 3) {
       throw new LineException(`wrong number of arguments (${args.length} given)`);
     }
@@ -82,6 +66,20 @@ export function validate (instruction, isMacro) {
       if (C !== undefined && global.labels[C] === undefined) {
         throw new LineException(`label "${C}" is undefined`);
       }
+    }
+  } else {
+    // name validation
+    const name = args[0];
+    if (!name.match(/[a-z_]([a-z0-9_]+)?/)) {
+      throw new LineException(`invalid macro name "${name}"`);
+    }
+    if (global.macros[name] === undefined) {
+      throw new LineException(`macro "${name}" is undefined`);
+    }
+
+    // arguments validation
+    if (args.length - 1 !== global.macros[name].params) {
+      throw new LineException(`wrong number of arguments (${args.length - 1} given)`);
     }
   }
 }

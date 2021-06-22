@@ -6,8 +6,7 @@
 */
 
 import * as Instruction from './instruction.js';
-import * as Util from './util.js';
-import { LineException } from './util.js';
+import { isAbcout, LineException } from './util.js';
 
 /**
  * macro preparation function
@@ -79,21 +78,19 @@ export function create (macro) {
   macro.splice(0, 1, ...opening);
 
   let [name, params, ...lines] = macro;
+  lines = lines.slice(0, -1); // remove the closing line
   validate(name, params, lines);
 
   // expand the macros this macro depends on
   lines = lines.flatMap(line => {
     global.lineNo++;
-    if (Util.isMacro(line)) {
+    Instruction.validate(line);
+    if (isAbcout(line)) {
+      return line;
+    } else {
       const dep = line.split(' ').filter(x => x !== '')[0];
       dependencies.push(dep);
-      Instruction.validate(line, true);
       return expand(line);
-    } else {
-      if (line !== '%endmacro') {
-        Instruction.validate(line, false);
-      }
-      return line;
     }
   });
 
@@ -102,7 +99,7 @@ export function create (macro) {
     calls: 0,
     params: Number(params),
     dependencies: dependencies,
-    lines: lines.slice(0, -1)
+    lines: lines
   };
 }
 
