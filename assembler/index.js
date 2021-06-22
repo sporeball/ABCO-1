@@ -79,25 +79,21 @@ export default function assemble (input, args) {
     }
   });
 
+  contents = contents.filter(line => line !== '');
+
   // set all labels
-  const filtered = contents.filter(line => line !== '');
-  for (let label of filtered.filter(line => line.match(/^.+:$/))) {
-    const index = filtered.indexOf(label);
+  for (let label of contents.filter(line => line.endsWith(':'))) {
+    const index = contents.indexOf(label);
     label = label.slice(0, -1); // remove colon
     global.labels[label] = index * 6;
-    filtered.splice(index, 1);
+    contents.splice(index, 1);
   }
-
-  // replace any label declaration with the empty string
-  contents = contents.map(line => line.match(/^.+:$/) ? '' : line);
 
   global.lineNo = 0;
 
   // assemble the ROM
   for (const line of contents) {
     global.lineNo++;
-
-    if (line === '') continue;
 
     // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
     // this leads to a hard limit of 5,460 instructions

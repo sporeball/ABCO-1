@@ -13,8 +13,13 @@ export function prep (contents) {
 
   for (const line of contents) {
     global.lineNo++;
+
     if (line === '' || line.endsWith(':')) {
       continue;
+    }
+    // edge case
+    if (line === 'abcout') {
+      throw new LineException('wrong number of arguments (0 given)');
     }
 
     const isMacro = !line.match(/^\d+(,| )|^[^, ]+?,/); // aaaaaa
@@ -28,11 +33,6 @@ export function prep (contents) {
  * @param {boolean} isMacro
  */
 export function validate (instruction, isMacro) {
-  // edge case
-  if (instruction === 'abcout') {
-    throw new LineException('wrong number of arguments (0 given)');
-  }
-
   let args = instruction.split(' ');
   if (!Util.isSeparated(args, isMacro)) {
     throw new LineException('arguments must be comma-separated');
