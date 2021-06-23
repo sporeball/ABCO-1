@@ -8,8 +8,13 @@
 import chalk from 'chalk';
 
 // log levels
-export const info = str => console.log(chalk.cyan(str));
-export const success = str => console.log(chalk.green(str));
+export const info = str => {
+  console.log(chalk.cyan(str));
+};
+
+export const success = str => {
+  console.log(chalk.green(str));
+};
 
 // error classes
 export class Exception {
@@ -32,28 +37,34 @@ export class LineException {
 export const argify = str => str.replace(/,/gm, '').split(' ');
 
 /**
- * @param line
+ * @param {String} line
  * @returns {boolean}
  */
 export const isAbcout = line => line.match(/^\d+(,| )?|^[^, ]+?,/);
 
 /**
- * @param line
+ * @param {String} line
  * @returns {boolean}
  */
 export const isBlank = line => line === '';
 
 /**
- * @param line
+ * @param {String} line
  * @returns {boolean}
  */
 export const isLabel = line => line.endsWith(':');
 
 /**
- * @param line
+ * @param {String} line
  * @returns {boolean}
  */
 export const isMacro = line => line.match(/^[^\d, %]+ |^[^\d, :%]+$/);
+
+/**
+ * @param {String} arg
+ * @returns {boolean}
+ */
+export const isParameter = arg => arg.match(/^%\d+$/);
 
 /**
  * return whether the arguments of an instruction are properly comma-separated
@@ -77,7 +88,7 @@ export const isSeparated = args => {
 
 /**
  * remove consecutive spaces in a string
- * @param str
+ * @param {String} str
  * @returns {String}
  */
 export const normalize = str => str.split(' ').filter(x => x !== '').join(' ');
@@ -85,7 +96,7 @@ export const normalize = str => str.split(' ').filter(x => x !== '').join(' ');
 /**
  * cast all hex literals (0xABC) in a string to numbers
  * immediately throws if this results in NaN
- * @param str
+ * @param {String} str
  * @returns {String}
  */
 export const parseHex = str => {

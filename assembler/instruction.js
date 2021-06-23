@@ -6,8 +6,14 @@
 */
 
 import * as Util from './util.js';
-import { isAbcout, isBlank, isLabel, LineException } from './util.js';
+import { LineException, isAbcout, isBlank, isLabel } from './util.js';
 
+/**
+ * instruction preparation function
+ * validates every instruction left in the file
+ * after the macro and label steps
+ * @param {Array} contents
+ */
 export function prep (contents) {
   global.lineNo = 0;
 
@@ -23,8 +29,9 @@ export function prep (contents) {
 /**
  * validate an instruction
  * @param {String} instruction
+ * @param {boolean} [inMacro]
  */
-export function validate (instruction) {
+export function validate (instruction, inMacro = false) {
   // edge case
   if (instruction === 'abcout') {
     throw new LineException('wrong number of arguments (0 given)');
@@ -44,6 +51,10 @@ export function validate (instruction) {
     } else if (arg < 0) {
       throw new LineException('argument cannot be negative');
     }
+  }
+
+  if (!inMacro && args.some(arg => arg.startsWith('%'))) {
+    throw new LineException('parameters cannot be used at the top level');
   }
 
   if (isAbcout(instruction)) {

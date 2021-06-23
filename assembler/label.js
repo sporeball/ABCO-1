@@ -6,7 +6,7 @@
 */
 
 import * as Util from './util.js';
-import { isLabel, LineException } from './util.js';
+import { LineException, isLabel } from './util.js';
 
 /**
  * label preparation function

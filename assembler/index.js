@@ -21,6 +21,11 @@ global.macros = {};
 
 let contents; // file contents
 
+/**
+ * main function
+ * @param {String} input
+ * @param {Object} args
+ */
 export default function assemble (input, args) {
   contents = input;
   let bytes = '';
@@ -89,18 +94,8 @@ export default function assemble (input, args) {
     contents.splice(index, 1);
   }
 
-  global.lineNo = 0;
-
   // assemble the ROM
   for (const line of contents) {
-    global.lineNo++;
-
-    // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for our halt condition
-    // this leads to a hard limit of 5,460 instructions
-    if (bytes.length === 32760) {
-      throw new Exception('too many instructions');
-    }
-
     const args = Util.argify(line).map(Number);
     // replace C if needed
     if (args[2] === undefined) {
@@ -121,6 +116,12 @@ export default function assemble (input, args) {
     }
 
     global.ip += 6;
+  }
+
+  // ROM size is 32K, and we have to guarantee that space is left at the end of a theoretical filled ROM for the halt condition
+  // this leads to a hard limit of 5,460 instructions (32,760 bytes)
+  if (bytes.length > 32760) {
+    throw new Exception(`too many instructions (wrote ${(bytes.length / 6)})`);
   }
 
   // add halt condition

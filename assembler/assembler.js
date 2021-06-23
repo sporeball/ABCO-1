@@ -6,7 +6,7 @@
 */
 
 import assemble from './index.js';
-import { Exception, LineException } from './util.js';
+import { Exception, LineException, info } from './util.js';
 
 import fs from 'fs';
 import eol from 'eol';
@@ -53,7 +53,7 @@ try {
     console.log(e.message);
   } else {
     console.log(chalk.red('uncaught error'));
-    console.log(chalk.cyan('this probably has nothing to do with your program; maybe file an issue?\n'));
+    info('this probably has nothing to do with your program; maybe file an issue?\n');
     console.log(e);
   }
 }

@@ -6,7 +6,7 @@
 */
 
 import * as Instruction from './instruction.js';
-import { isAbcout, LineException } from './util.js';
+import { LineException, isAbcout } from './util.js';
 
 /**
  * macro preparation function
@@ -38,8 +38,11 @@ export function prep (contents) {
         throw new LineException('unmatched macro closing statement');
       }
       stack.pop();
+    } else if (line.match(/^%\d+/)) {
+      // assume it's okay for now
+      continue;
     } else {
-      throw new LineException('malformed macro definition');
+      throw new LineException('invalid use of %');
     }
 
     if (stack.length > maxLength) {
@@ -81,10 +84,10 @@ export function create (macro) {
   lines = lines.slice(0, -1); // remove the closing line
   validate(name, params, lines);
 
-  // expand the macros this macro depends on
+  // validate and expand all the lines of this macro
   lines = lines.flatMap(line => {
     global.lineNo++;
-    Instruction.validate(line);
+    Instruction.validate(line, true);
     if (isAbcout(line)) {
       return line;
     } else {
