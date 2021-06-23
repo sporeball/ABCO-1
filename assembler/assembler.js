@@ -6,10 +6,11 @@
 */
 
 import assemble from './index.js';
-import { Exception } from './util.js';
+import { Exception, LineException } from './util.js';
 
 import fs from 'fs';
 import eol from 'eol';
+import chalk from 'chalk';
 import yeow from 'yeow';
 
 const args = yeow({
@@ -48,5 +49,11 @@ function assembler () {
 try {
   assembler();
 } catch (e) {
-  console.log(e.message);
+  if (e instanceof Exception || e instanceof LineException) {
+    console.log(e.message);
+  } else {
+    console.log(chalk.red('uncaught error'));
+    console.log(chalk.cyan('this probably has nothing to do with your program; maybe file an issue?\n'));
+    console.log(e);
+  }
 }
