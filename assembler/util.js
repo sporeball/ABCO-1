@@ -64,7 +64,7 @@ export const isMacro = line => line.match(/^[^\d, %]+ |^[^\d, :%]+$/);
  * @param {String} arg
  * @returns {boolean}
  */
-export const isParameter = arg => arg.match(/^%\d+$/);
+export const isMacroParameter = arg => arg.match(/^%\d+$/);
 
 /**
  * return whether the arguments of an instruction are properly comma-separated

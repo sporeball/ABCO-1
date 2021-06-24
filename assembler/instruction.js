@@ -6,7 +6,7 @@
 */
 
 import * as Util from './util.js';
-import { LineException, isAbcout, isBlank, isLabel } from './util.js';
+import { LineException, isAbcout, isBlank, isLabel, isMacroParameter } from './util.js';
 
 /**
  * instruction preparation function
@@ -42,7 +42,8 @@ export function validate (instruction, inMacro = false) {
   if (!Util.isSeparated(args)) {
     throw new LineException('arguments must be comma-separated');
   }
-  args = args.map(arg => arg.replace(',', ''));
+  args = args.map(arg => arg.replace(/,/gm, ''));
+  console.log(args);
 
   // validate the arguments that are already numbers
   for (const arg of args.filter(arg => isFinite(arg))) {
@@ -64,8 +65,11 @@ export function validate (instruction, inMacro = false) {
 
     const [A, B, C] = args;
     // A and B validation
-    if (isNaN(A) || isNaN(B)) {
-      throw new LineException('arguments A and B must be integers');
+    if (!isFinite(A) && !isMacroParameter(A)) {
+      throw new LineException('invalid value for argument A');
+    }
+    if (!isFinite(B) && !isMacroParameter(B)) {
+      throw new LineException('invalid value for argument B');
     }
 
     // C validation
@@ -75,7 +79,9 @@ export function validate (instruction, inMacro = false) {
       }
     } else {
       if (C !== undefined && global.labels[C] === undefined) {
-        throw new LineException(`label "${C}" is undefined`);
+        if (!isMacroParameter(C)) {
+          throw new LineException(`label "${C}" is undefined`);
+        }
       }
     }
   } else {

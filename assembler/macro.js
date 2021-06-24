@@ -88,6 +88,7 @@ export function create (macro) {
   lines = lines.flatMap(line => {
     global.lineNo++;
     Instruction.validate(line, true);
+
     if (isAbcout(line)) {
       return line;
     } else {
@@ -114,7 +115,7 @@ export function create (macro) {
  */
 export function expand (instruction, top = false) {
   // macro_name A, B, C, ...
-  const [name] = instruction.split(' ');
+  let [name, ...args] = instruction.split(' ');
 
   if (top) {
     global.macros[name].calls++;
@@ -123,7 +124,20 @@ export function expand (instruction, top = false) {
     }
   }
 
-  return global.macros[name].lines;
+  let lines = global.macros[name].lines;
+  for (let i = 0; i < lines.length; i++) {
+    lines[i] = fillAll(lines[i], args);
+  }
+
+  for (const line of lines) {
+    try {
+      Instruction.validate(line);
+    } catch (e) {
+      throw new LineException('invalid parameter passed to macro (please double-check)');
+    }
+  }
+
+  return lines;
 }
 
 /**
@@ -156,4 +170,17 @@ function validate (name, params, lines) {
     global.lineNo += (idx + 1);
     throw new LineException(`macro "${name}" cannot call itself`);
   }
+}
+
+/**
+ * fill in all macro parameters passed to an instruction
+ * @param {String} instruction
+ * @param {Number} paramCount
+ */
+function fillAll (instruction, params) {
+  for (let param = 0; param < params.length; param++) {
+    let exp = new RegExp(`%${param}`, 'g');
+    instruction = instruction.replace(exp, params[param]);
+  }
+  return instruction;
 }
