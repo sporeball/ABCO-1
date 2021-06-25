@@ -28,7 +28,7 @@ function simulator () {
 
   // get file contents
   try {
-    contents = fs.readFileSync(file, { encoding: 'utf-8' });
+    contents = fs.readFileSync(file, { encoding: 'binary' });
   } catch (e) {
     throw new Exception('file not found');
   }
