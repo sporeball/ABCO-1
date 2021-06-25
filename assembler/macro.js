@@ -10,8 +10,7 @@ import { LineException, isAbcout } from './util.js';
 
 /**
  * macro preparation function
- * asserts that all macro definitions are properly balanced,
- * and that (at a minimum) all openings begin with '%macro'
+ * asserts that all macro definitions are properly balanced, and that (at a minimum) all openings begin with '%macro'
  * @param {Array} contents
  */
 export function prep (contents) {
@@ -87,8 +86,7 @@ export function create (macro) {
   // validate and expand all the lines of this macro
   lines = lines.flatMap(line => {
     global.lineNo++;
-    Instruction.validate(line, true);
-
+    Instruction.validate(line, params);
     if (isAbcout(line)) {
       return line;
     } else {
@@ -115,7 +113,7 @@ export function create (macro) {
  */
 export function expand (instruction, top = false) {
   // macro_name A, B, C, ...
-  let [name, ...args] = instruction.split(' ');
+  const [name, ...args] = instruction.split(' ');
 
   if (top) {
     global.macros[name].calls++;
@@ -124,16 +122,18 @@ export function expand (instruction, top = false) {
     }
   }
 
-  let lines = global.macros[name].lines;
+  const lines = global.macros[name].lines;
+  // fill in parameters (%n)
   for (let i = 0; i < lines.length; i++) {
     lines[i] = fillAll(lines[i], args);
   }
 
+  // validate again
   for (const line of lines) {
     try {
       Instruction.validate(line);
     } catch (e) {
-      throw new LineException('invalid parameter passed to macro (please double-check)');
+      throw new LineException('parameter rendered invalid after expansion');
     }
   }
 
@@ -175,11 +175,11 @@ function validate (name, params, lines) {
 /**
  * fill in all macro parameters passed to an instruction
  * @param {String} instruction
- * @param {Number} paramCount
+ * @param {Array} params
  */
 function fillAll (instruction, params) {
   for (let param = 0; param < params.length; param++) {
-    let exp = new RegExp(`%${param}`, 'g');
+    const exp = new RegExp(`%${param}`, 'g');
     instruction = instruction.replace(exp, params[param]);
   }
   return instruction;

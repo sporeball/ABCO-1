@@ -10,8 +10,7 @@ import { LineException, isLabel } from './util.js';
 
 /**
  * label preparation function
- * validates various aspects of each label,
- * and initializes them if they pass
+ * validates various aspects of each label, and initializes them if they pass
  * @param {Array} contents
  */
 export function prep (contents) {

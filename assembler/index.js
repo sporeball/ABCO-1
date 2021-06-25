@@ -91,7 +91,7 @@ export default function assemble (input, args) {
     const index = contents.indexOf(label);
     label = label.slice(0, -1); // remove colon
     global.labels[label] = index * 6;
-    contents.splice(index, 1);
+    contents.splice(index, 1); // remove the declaration
   }
 
   // assemble the ROM
@@ -107,8 +107,8 @@ export default function assemble (input, args) {
 
     for (const arg of args) {
       if (arg > 255) {
-        bytes += String.fromCharCode(arg >> 8); // upper 8 bits of n
-        bytes += String.fromCharCode(arg & 255); // lower 8 bits of n
+        bytes += String.fromCharCode(arg >> 8); // upper 8 bits
+        bytes += String.fromCharCode(arg & 255); // lower 8 bits
       } else {
         bytes += String.fromCharCode(0x00);
         bytes += String.fromCharCode(arg);

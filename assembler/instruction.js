@@ -10,8 +10,7 @@ import { LineException, isAbcout, isBlank, isLabel, isMacroParameter } from './u
 
 /**
  * instruction preparation function
- * validates every instruction left in the file
- * after the macro and label steps
+ * validates every instruction left in the file after the macro and label steps
  * @param {Array} contents
  */
 export function prep (contents) {
@@ -29,9 +28,9 @@ export function prep (contents) {
 /**
  * validate an instruction
  * @param {String} instruction
- * @param {boolean} [inMacro]
+ * @param {boolean} [paramCount] the number of (macro) parameters the instruction accepts
  */
-export function validate (instruction, inMacro = false) {
+export function validate (instruction, paramCount = 0) {
   // edge case
   if (instruction === 'abcout') {
     throw new LineException('wrong number of arguments (0 given)');
@@ -43,20 +42,32 @@ export function validate (instruction, inMacro = false) {
     throw new LineException('arguments must be comma-separated');
   }
   args = args.map(arg => arg.replace(/,/gm, ''));
-  console.log(args);
 
-  // validate the arguments that are already numbers
+  // integer validation
   for (const arg of args.filter(arg => isFinite(arg))) {
     if (arg > 32767) {
       throw new LineException('argument too big');
-    } else if (arg < 0) {
+    }
+    if (arg < 0) {
       throw new LineException('argument cannot be negative');
+    }
+    if (arg % 1 !== 0) {
+      throw new LineException('argument cannot be a float');
     }
   }
 
-  if (!inMacro && args.some(arg => arg.startsWith('%'))) {
-    throw new LineException('parameters cannot be used at the top level');
-  }
+  // macro parameter validation
+  args.forEach(arg => {
+    if (arg.startsWith('%')) {
+      const param = Number(arg.slice(1));
+      if (isNaN(param)) {
+        throw new LineException(`invalid parameter value "${arg}"`);
+      }
+      if (param > paramCount - 1) {
+        throw new LineException('parameter out of range');
+      }
+    }
+  });
 
   if (isAbcout(instruction)) {
     if (args.length !== 2 && args.length !== 3) {
