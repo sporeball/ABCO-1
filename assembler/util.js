@@ -19,13 +19,13 @@ export const success = str => {
 // error classes
 export class Exception {
   constructor (message) {
-    this.message = `${chalk.red('error:')} ${message}`;
+    this.message = chalk`{red error:} ${message}`;
   }
 }
 
 export class LineException {
   constructor (message) {
-    this.message = `${chalk.red('error:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`;
+    this.message = chalk`{red error:} ${message}\n  {cyan at line ${global.lineNo}}`;
   }
 }
 
@@ -109,6 +109,14 @@ export const parseHex = str => {
     }
   });
   return str;
+};
+
+/**
+ * produce a summary of the final written file
+ * @param {Number} length file length
+ */
+export const summary = length => {
+  console.log(chalk`wrote {cyan 32kB total} / {blue ${length}B source} (${length / 6} instructions)`);
 };
 
 /**
