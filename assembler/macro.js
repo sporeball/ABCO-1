@@ -6,7 +6,8 @@
 */
 
 import * as Instruction from './instruction.js';
-import { LineException, isAbcout } from './util.js';
+import * as Label from './label.js';
+import { LineException, isAbcout, isBlank, isLabel, isMacro } from './util.js';
 
 /**
  * macro preparation function
@@ -68,7 +69,9 @@ export function prep (contents) {
  * @param {Array} macro
  */
 export function create (macro) {
-  const dependencies = [];
+  const labels = []; // labels defined by this macro
+  const dependencies = []; // other macros called by this macro
+  const openingLine = global.lineNo;
 
   // should yield an array with name and parameter count, if valid
   const opening = macro[0].split(' ').slice(1);
@@ -83,16 +86,31 @@ export function create (macro) {
   lines = lines.slice(0, -1); // remove the closing line
   validate(name, params, lines);
 
+  // collect labels
+  for (const line of lines) {
+    global.lineNo++;
+    if (isLabel(line)) {
+      Label.validate(line, labels);
+      labels.push(line.slice(0, -1));
+    }
+  }
+
+  global.lineNo = openingLine;
+
   // validate and expand all the lines of this macro
   lines = lines.flatMap(line => {
     global.lineNo++;
-    Instruction.validate(line, params);
-    if (isAbcout(line)) {
-      return line;
-    } else {
+
+    if (isAbcout(line) || isMacro(line)) {
+      Instruction.validate(line, labels, params);
+    }
+
+    if (isMacro(line)) {
       const dep = line.split(' ').filter(x => x !== '')[0];
       dependencies.push(dep);
-      return expand(line);
+      return expand(line, false, labels);
+    } else {
+      return line;
     }
   });
 
@@ -101,6 +119,7 @@ export function create (macro) {
     calls: 0,
     params: Number(params),
     dependencies: dependencies,
+    labels: labels,
     lines: lines
   };
 }
@@ -109,31 +128,37 @@ export function create (macro) {
  * return the expansion of a macro instruction
  * @param {Object} instruction
  * @param {boolean} [top] whether this expansion is occurring in the main code
+ * @param {Array} [labels] additional macro labels accessible to this instruction 
  * @returns {Array}
  */
-export function expand (instruction, top = false) {
+export function expand (instruction, top = false, labels = []) {
   // macro_name A, B, C, ...
-  const [name, ...args] = instruction.split(' ');
+  let [name, ...args] = instruction.split(' ');
+  const { params, dependencies, lines } = global.macros[name];
+
+  args = args.map(arg => arg.replace(/,/gm, ''));
 
   if (top) {
     global.macros[name].calls++;
-    for (const dep of global.macros[name].dependencies) {
+    for (const dep of dependencies) {
       global.macros[dep].calls++;
     }
   }
 
-  const lines = global.macros[name].lines;
-  // fill in parameters (%n)
   for (let i = 0; i < lines.length; i++) {
-    lines[i] = fillAll(lines[i], args);
-  }
-
-  // validate again
-  for (const line of lines) {
-    try {
-      Instruction.validate(line);
-    } catch (e) {
-      throw new LineException('parameter rendered invalid after expansion');
+    const line = lines[i];
+    if (isBlank(line)) {
+      continue;
+    } else if (isLabel(line)) {
+      // todo: replace
+    } else {
+      lines[i] = fillParameters(line, args);
+      // validate again
+      try {
+        Instruction.validate(lines[i], labels, params);
+      } catch (e) {
+        throw new LineException('parameter rendered invalid after expansion');
+      }
     }
   }
 
@@ -176,11 +201,27 @@ function validate (name, params, lines) {
  * fill in all macro parameters passed to an instruction
  * @param {String} instruction
  * @param {Array} params
+ * @returns {String}
  */
-function fillAll (instruction, params) {
-  for (let param = 0; param < params.length; param++) {
-    const exp = new RegExp(`%${param}`, 'g');
-    instruction = instruction.replace(exp, params[param]);
+function fillParameters (instruction, params) {
+  const args = instruction.split(', ');
+
+  // array of booleans
+  // if any element is true, the corresponding argument to the instruction cannot be changed anymore
+  const frozen = args.map(arg => false);
+
+  // for each macro parameter...
+  for (let n = 0; n < params.length; n++) {
+    // for each argument to the original instruction...
+    for (let arg = 0; arg < args.length; arg++) {
+      // skip if it's frozen
+      if (frozen[arg]) {
+        continue;
+      } else if (args[arg] === `%${n}`) {
+        args[arg] = params[n]; // replace the argument
+        frozen[arg] = true; // freeze
+      }
+    }
   }
-  return instruction;
+  return args.join(', ');
 }

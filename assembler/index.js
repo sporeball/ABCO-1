@@ -20,6 +20,7 @@ global.labels = {};
 global.macros = {};
 
 let contents; // file contents
+let bytes = ''; // final byte stream
 
 /**
  * main function
@@ -28,7 +29,6 @@ let contents; // file contents
  */
 export default function assemble (input, args) {
   contents = input;
-  let bytes = '';
 
   if (contents.endsWith('\n')) {
     contents = contents.slice(0, -1);
@@ -78,13 +78,15 @@ export default function assemble (input, args) {
   contents = contents.flatMap(line => {
     global.lineNo++;
     if (isMacro(line)) {
-      return Macro.expand(line, true);
+      const name = line.split(' ')[0];
+      return Macro.expand(line, true, global.macros[name].labels);
     } else {
       return line;
     }
   });
 
   contents = contents.filter(line => !isBlank(line));
+
 
   // set all labels
   for (let label of contents.filter(line => isLabel(line))) {

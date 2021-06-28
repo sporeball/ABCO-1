@@ -124,5 +124,5 @@ export const summary = length => {
  * @param {String} message
  */
 export const warn = message => {
-  console.log(`${chalk.yellow('warning:')} ${message}\n  ${chalk.cyan(`at line ${global.lineNo}`)}`);
+  console.log(chalk`{yellow warning:} ${message}\n  {cyan at line ${global.lineNo}}`);
 };

@@ -15,7 +15,6 @@ import { LineException, isLabel } from './util.js';
  */
 export function prep (contents) {
   global.lineNo = 0;
-  const labels = [];
 
   for (const line of contents) {
     global.lineNo++;
@@ -23,37 +22,48 @@ export function prep (contents) {
       continue;
     }
 
-    const label = line.slice(0, -1);
-
     // if the label is the very last line in the file...
     if (contents[global.lineNo] === undefined) {
-      throw new LineException(`label "${label}" must be followed by an instruction`);
+      throw new LineException(`label "${line.slice(0, -1)}" must be followed by an instruction`);
     }
 
-    // name validation
-    if (label === 'abcout') {
-      throw new LineException('"abcout" cannot be used as a label name');
-    } else if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-      throw new LineException(`invalid label name "${label}`);
-    } else if (labels.includes(label)) {
-      throw new LineException(`label "${label}" already in use`);
-    } else {
-      labels.push(label);
-    }
-
-    if (global.macros[label] !== undefined) {
-      Util.warn(`label "${label}" shares its name with a macro; this is not recommended`);
-    }
-
-    initialize(label);
+    validate(line);
+    initialize(line);
   }
 }
 
 /**
- * initialize a label with a certain name
- * @param {String} name
+ * validate a line consisting of a label declaration
+ * @param {String} line
+ * @param {Array} [siblings] other labels defined in the same scope as this one
  */
-function initialize (name) {
+export function validate (line, siblings = Object.keys(global.labels)) {
+  const label = line.slice(0, -1);
+
+  // name validation
+  if (label === 'abcout') {
+    throw new LineException('"abcout" cannot be used as a label name');
+  }
+  if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) {
+    throw new LineException(`invalid label name "${label}`);
+  }
+
+  if (siblings.includes(label)) {
+    throw new LineException(`label "${label}" already in use`);
+  }
+
+  if (global.macros[label] !== undefined) {
+    Util.warn(`label "${label}" shares its name with a macro; this is not recommended`);
+  }
+}
+
+/**
+ * initialize a label declaration
+ * @param {String} label
+ */
+function initialize (label) {
+  const name = label.slice(0, -1);
+
   // this is a placeholder value, and gets updated later
   global.labels[name] = -1;
 }

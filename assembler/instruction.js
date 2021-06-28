@@ -28,9 +28,10 @@ export function prep (contents) {
 /**
  * validate an instruction
  * @param {String} instruction
- * @param {boolean} [paramCount] the number of (macro) parameters the instruction accepts
+ * @param {Array} [labels] an array of macro labels this instruction can access
+ * @param {Number} [paramCount] the number of macro parameters the instruction accepts
  */
-export function validate (instruction, paramCount = 0) {
+export function validate (instruction, labels = [], paramCount = 0) {
   // edge case
   if (instruction === 'abcout') {
     throw new LineException('wrong number of arguments (0 given)');
@@ -84,13 +85,18 @@ export function validate (instruction, paramCount = 0) {
     }
 
     // C validation
-    if (isFinite(C)) {
-      if (C % 6 !== 0) {
-        throw new LineException('invalid value for argument C');
-      }
-    } else {
-      if (C !== undefined && global.labels[C] === undefined) {
-        if (!isMacroParameter(C)) {
+    if (C !== undefined && !isMacroParameter(C)) {
+      if (isFinite(C)) {
+        if (C % 6 !== 0) {
+          throw new LineException('invalid value for argument C');
+        }
+      } else if (C.startsWith('#')) {
+        const label = C.slice(1); // remove #
+        if (!labels.includes(label)) {
+          throw new LineException(`label "${label}" is undefined`);
+        }
+      } else {
+        if (global.labels[C] === undefined && !C.startsWith('M')) {
           throw new LineException(`label "${C}" is undefined`);
         }
       }
