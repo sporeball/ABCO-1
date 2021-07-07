@@ -87,6 +87,12 @@ export const isSeparated = args => {
 };
 
 /**
+ * @param {String} arg
+ * @returns {boolean}
+ */
+export const isScopedLabel = arg => arg.startsWith('#');
+
+/**
  * remove consecutive spaces in a string
  * @param {String} str
  * @returns {String}

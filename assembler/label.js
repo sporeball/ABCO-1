@@ -22,6 +22,10 @@ export function prep (contents) {
       continue;
     }
 
+    if (line.startsWith('M')) {
+      throw new LineException('labels starting with M are for internal use only');
+    }
+
     // if the label is the very last line in the file...
     if (contents[global.lineNo] === undefined) {
       throw new LineException(`label "${line.slice(0, -1)}" must be followed by an instruction`);

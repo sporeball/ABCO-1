@@ -87,7 +87,6 @@ export default function assemble (input, args) {
 
   contents = contents.filter(line => !isBlank(line));
 
-
   // set all labels
   for (let label of contents.filter(line => isLabel(line))) {
     const index = contents.indexOf(label);
@@ -98,12 +97,12 @@ export default function assemble (input, args) {
 
   // assemble the ROM
   for (const line of contents) {
-    const args = Util.argify(line).map(Number);
+    const args = Util.argify(line);
     // replace C if needed
     if (args[2] === undefined) {
       args[2] = global.ip + 6;
     }
-    if (isNaN(args[2])) {
+    if (isNaN(Number(args[2]))) {
       args[2] = global.labels[args[2]];
     }
 

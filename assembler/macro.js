@@ -7,7 +7,7 @@
 
 import * as Instruction from './instruction.js';
 import * as Label from './label.js';
-import { LineException, isAbcout, isBlank, isLabel, isMacro } from './util.js';
+import { LineException, isAbcout, isBlank, isLabel, isMacro, isScopedLabel } from './util.js';
 
 /**
  * macro preparation function
@@ -128,13 +128,14 @@ export function create (macro) {
  * return the expansion of a macro instruction
  * @param {Object} instruction
  * @param {boolean} [top] whether this expansion is occurring in the main code
- * @param {Array} [labels] additional macro labels accessible to this instruction 
+ * @param {Array} [labels] additional macro labels accessible to this instruction
  * @returns {Array}
  */
 export function expand (instruction, top = false, labels = []) {
   // macro_name A, B, C, ...
   let [name, ...args] = instruction.split(' ');
-  const { params, dependencies, lines } = global.macros[name];
+  const { params, dependencies } = global.macros[name];
+  const lines = [...global.macros[name].lines];
 
   args = args.map(arg => arg.replace(/,/gm, ''));
 
@@ -145,14 +146,23 @@ export function expand (instruction, top = false, labels = []) {
     }
   }
 
+  const calls = global.macros[name].calls;
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (isBlank(line)) {
       continue;
     } else if (isLabel(line)) {
-      // todo: replace
+      if (top) {
+        // create a unique scoped label name
+        // requires the macro name, original label name, and call count
+        lines[i] = `M${name}_${line.slice(0, -1)}_${calls}:`;
+      }
     } else {
       lines[i] = fillParameters(line, args);
+      if (top) {
+        lines[i] = fillScoped(lines[i], name, calls);
+      }
       // validate again
       try {
         Instruction.validate(lines[i], labels, params);
@@ -198,9 +208,9 @@ function validate (name, params, lines) {
 }
 
 /**
- * fill in all macro parameters passed to an instruction
+ * fill in all macro parameters (%n) passed as arguments to an instruction
  * @param {String} instruction
- * @param {Array} params
+ * @param {Array} params the actual parameters that matching arguments should be replaced by
  * @returns {String}
  */
 function fillParameters (instruction, params) {
@@ -214,14 +224,36 @@ function fillParameters (instruction, params) {
   for (let n = 0; n < params.length; n++) {
     // for each argument to the original instruction...
     for (let arg = 0; arg < args.length; arg++) {
-      // skip if it's frozen
-      if (frozen[arg]) {
-        continue;
-      } else if (args[arg] === `%${n}`) {
+      if (args[arg] === `%${n}`) {
+        // skip if it's frozen
+        if (frozen[arg]) {
+          continue;
+        }
         args[arg] = params[n]; // replace the argument
         frozen[arg] = true; // freeze
       }
     }
   }
+
+  return args.join(', ');
+}
+
+/**
+ * replace all scoped labels in an instruction with new unique names
+ * @param {String} instruction
+ * @param {String} name the name of the macro the instruction is within
+ * @param {Number} calls the macro's number of calls
+ */
+function fillScoped (instruction, name, calls) {
+  const args = instruction.split(', ');
+
+  // for each argument to the instruction...
+  for (let arg = 0; arg < args.length; arg++) {
+    if (isScopedLabel(args[arg])) {
+      const label = args[arg].slice(1);
+      args[arg] = `M${name}_${label}_${calls}`;
+    }
+  }
+
   return args.join(', ');
 }
