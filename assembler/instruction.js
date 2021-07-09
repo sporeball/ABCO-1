@@ -21,6 +21,7 @@ export function prep (contents) {
     if (isBlank(line) || isLabel(line)) {
       continue;
     }
+
     validate(line);
   }
 }

@@ -9,13 +9,16 @@
 import * as Instruction from './instruction.js';
 import * as Label from './label.js';
 import * as Macro from './macro.js';
+import * as Import from './import.js';
 import * as Util from './util.js';
-import { Exception, isBlank, isLabel, isMacro } from './util.js';
+import { Exception, isBlank, isImport, isLabel, isMacro } from './util.js';
 
 import fs from 'fs';
 
 global.lineNo = 1;
 global.ip = 0;
+global.callStack = [];
+
 global.labels = {};
 global.macros = {};
 
@@ -29,24 +32,22 @@ let bytes = ''; // final byte stream
  */
 export default function assemble (input, args) {
   contents = input;
-
-  if (contents.endsWith('\n')) {
-    contents = contents.slice(0, -1);
-  }
+  global.file = args.file;
 
   // initial processing
-  contents = contents.replace(/;.*$/gm, '')
-    .replace(/\$/gm, '0x')
-    .split('\n')
-    .map(line => line.trim())
-    .map(line => Util.normalize(line)) // collapse whitespace within
-    .map(line => line.startsWith('abcout ') ? line.slice(7) : line); // remove "abcout"
+  contents = prep(contents);
 
-  // cast hex literals to numbers
-  contents.forEach(line => {
-    line = Util.parseHex(line);
-    global.lineNo++;
-  });
+  // import preparation step
+  Import.prep(contents);
+
+  // add all imports
+  for (let imp of contents.filter(line => isImport(line))) {
+    const impIdx = contents.indexOf(imp) + 1;
+    global.lineNo = impIdx;
+
+    Import.add(imp);
+    contents[impIdx - 1] = ''; // blank the statement
+  }
 
   // macro preparation step
   Macro.prep(contents);
@@ -135,4 +136,35 @@ export default function assemble (input, args) {
   fs.writeFile(args.out, bytes, 'binary', () => {});
   Util.success('finished!');
   Util.summary(length);
+}
+
+/**
+ * root preparation function
+ * reshapes the contents of a file
+ * this is used to prepare the main program, but also any imports
+ * @param {String} contents
+ * @returns {Array}
+ */
+export function prep (contents) {
+  global.lineNo = 1;
+
+  if (contents.endsWith('\n')) {
+    contents = contents.slice(0, -1);
+  }
+
+  // replacements and slices
+  contents = contents.replace(/;.*$/gm, '')
+    .replace(/\$/gm, '0x')
+    .split('\n')
+    .map(line => line.trim())
+    .map(line => Util.normalize(line)) // collapse whitespace within
+    .map(line => line.startsWith('abcout ') ? line.slice(7) : line); // remove "abcout"
+
+  // cast hex literals to numbers
+  contents.forEach(line => {
+    line = Util.parseHex(line);
+    global.lineNo++;
+  });
+
+  return contents;
 }

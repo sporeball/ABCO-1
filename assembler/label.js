@@ -49,7 +49,7 @@ export function validate (line, siblings = Object.keys(global.labels)) {
     throw new LineException('"abcout" cannot be used as a label name');
   }
   if (!label.match(/^[a-z_]([a-z0-9_]+)?$/)) {
-    throw new LineException(`invalid label name "${label}`);
+    throw new LineException(`invalid label name "${label}"`);
   }
 
   if (siblings.includes(label)) {

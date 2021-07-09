@@ -25,7 +25,11 @@ export class Exception {
 
 export class LineException {
   constructor (message) {
-    this.message = chalk`{red error:} ${message}\n  {cyan at line ${global.lineNo}}`;
+    this.stack = global.callStack.concat(`line ${global.lineNo}`)
+      .reverse()
+      .map(x => `  at ${x}`)
+      .join('\n');
+    this.message = chalk`{red error:} ${message}\n{cyan ${this.stack}}`;
   }
 }
 
@@ -52,6 +56,12 @@ export const isBlank = line => line === '';
  * @param {String} line
  * @returns {boolean}
  */
+export const isImport = line => line.startsWith('@');
+
+/**
+ * @param {String} line
+ * @returns {boolean}
+ */
 export const isLabel = line => line.endsWith(':');
 
 /**
@@ -67,19 +77,19 @@ export const isMacro = line => line.match(/^[^\d, %]+ |^[^\d, :%]+$/);
 export const isMacroParameter = arg => arg.match(/^%\d+$/);
 
 /**
- * return whether the arguments of an instruction are properly comma-separated
+ * return whether the arguments to an instruction or import are properly comma-separated
  * @param {Array} args
  * @returns {boolean}
  */
 export const isSeparated = args => {
   const instruction = args.join(' ');
-  // if the instruction is a macro...
-  if (isMacro(instruction)) {
-    // the first argument should not end with a comma
+  // if we are validating a macro or import...
+  if (isMacro(instruction) || isImport(instruction)) {
+    // the first item should not end with a comma
     if (args[0].endsWith(',')) {
       return false;
     }
-    // drop the macro name
+    // drop the first item
     args = args.slice(1);
   }
   // the first remaining argument not ending with a comma should be the very last one
