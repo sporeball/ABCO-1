@@ -41,3 +41,10 @@ macro declaration begins with the keyword `%macro`, followed by a macro name and
 you can pass `%n` as an argument to an instruction to access the *n*-th parameter passed to the macro it is found within (0-indexed); for example, a simple `double` macro would consist of the single instruction `abcout %0, %0`.
 
 macros can even define their own labels, which can be referenced within the macro by prefacing them with `#` (e.g. `abcout 1, 2, #label`). labels defined in this way will be given a unique name every time the macro is expanded, to ensure no naming collisions.
+
+#### imports
+*imports* allow you to add macros defined in other files to your program. import statements begin with the keyword `@import`, followed by a comma-separated list of macros to import, the keyword `from`, and a filename (excluding the suffix `.abcout`.)
+
+for example, to import three macros from the file `basics.abcout`, you can write `@import jmp, beq, mov from basics`.
+
+*this feature is in progress!*
