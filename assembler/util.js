@@ -25,11 +25,7 @@ export class Exception {
 
 export class LineException {
   constructor (message) {
-    this.stack = global.callStack.concat(`line ${global.lineNo}`)
-      .reverse()
-      .map(x => `  at ${x}`)
-      .join('\n');
-    this.message = chalk`{red error:} ${message}\n{cyan ${this.stack}}`;
+    this.message = chalk`{red error:} ${message}\n{cyan ${trace()}}`;
   }
 }
 
@@ -128,11 +124,45 @@ export const parseHex = str => {
 };
 
 /**
+ * pop an item from the global call stack
+ */
+export const popStack = () => {
+  const stack = global.callStack;
+  stack.namespaces.shift();
+  global.lineNo = stack.lines.shift();
+};
+
+/**
+ * push an item to the global call stack
+ * @param {String} namespace the space we are moving into
+ */
+export const pushStack = namespace => {
+  const stack = global.callStack;
+  stack.namespaces.unshift(namespace);
+  stack.lines.unshift(global.lineNo);
+};
+
+/**
  * produce a summary of the final written file
  * @param {Number} length file length
  */
 export const summary = length => {
   console.log(chalk`wrote {cyan 32kB total} / {blue ${length}B source} (${length / 6} instructions)`);
+};
+
+/**
+ * produce a stack trace
+ */
+export const trace = () => {
+  const stack = global.callStack;
+  const traceArray = Array(stack.namespaces.length)
+    .fill(undefined);
+
+  // add where we are now
+  stack.lines.unshift(global.lineNo);
+
+  return traceArray.map((x, i) => `  at ${stack.namespaces[i]}:${stack.lines[i]}`)
+    .join('\n');
 };
 
 /**

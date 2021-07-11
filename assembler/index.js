@@ -15,9 +15,14 @@ import { Exception, isBlank, isImport, isLabel, isMacro } from './util.js';
 
 import fs from 'fs';
 
+// last in, first out
+global.callStack = {
+  namespaces: [],
+  lines: []
+};
+
 global.lineNo = 1;
 global.ip = 0;
-global.callStack = [];
 
 global.labels = {};
 global.macros = {};
@@ -33,6 +38,7 @@ let bytes = ''; // final byte stream
 export default function assemble (input, args) {
   contents = input;
   global.file = args.file;
+  global.callStack.namespaces.unshift(global.file);
 
   // initial processing
   contents = prep(contents);
@@ -41,7 +47,7 @@ export default function assemble (input, args) {
   Import.prep(contents);
 
   // add all imports
-  for (let imp of contents.filter(line => isImport(line))) {
+  for (const imp of contents.filter(line => isImport(line))) {
     const impIdx = contents.indexOf(imp) + 1;
     global.lineNo = impIdx;
 

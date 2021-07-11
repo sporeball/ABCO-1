@@ -10,7 +10,8 @@ import eol from 'eol';
 
 import * as Assembler from './index.js';
 import * as Macro from './macro.js';
-import { LineException, isSeparated } from './util.js';
+import * as Util from './util.js';
+import { LineException, isImport, isSeparated } from './util.js';
 
 /**
  * import preparation function
@@ -21,9 +22,9 @@ export function prep (contents) {
   global.lineNo = 0;
   const statements = [];
 
-  for (let line of contents) {
+  for (const line of contents) {
     global.lineNo++;
-    if (!line.startsWith('@')) {
+    if (!isImport(line)) {
       continue;
     }
 
@@ -32,7 +33,7 @@ export function prep (contents) {
         throw new LineException('an identical import statement already exists');
       }
 
-      let args = line.split(' ');
+      const args = line.split(' ');
 
       // "from" and file check
       if (args[args.length - 1] === 'from') {
@@ -85,15 +86,15 @@ export function add (imp) {
     throw new LineException(`file "${impFile}" not found`);
   }
 
-  global.callStack.push([global.file, global.lineNo]);
+  Util.pushStack(impFile);
   contents = Assembler.prep(contents); // reshape the contents
-  Macro.prep(contents); // catch nesting
-  global.callStack.pop();
+  Macro.prep(contents);
+  Util.popStack();
 
   const extMacros = (contents.join('\n').match(/%macro .*?%endmacro/gs) || [])
     .map(macro => macro.split('\n'));
 
-    global.lineNo = impLine;
+  global.lineNo = impLine;
 
   // for each macro we want to import...
   for (const impMacro of impMacros) {
@@ -104,9 +105,9 @@ export function add (imp) {
     }
 
     // try to create the macro
-    global.callStack.push([global.file, global.lineNo]);
+    Util.pushStack(impFile);
     global.lineNo = extIdx;
     Macro.create(extMacros[extIdx]);
-    global.callStack.pop();
+    Util.popStack();
   }
 }
