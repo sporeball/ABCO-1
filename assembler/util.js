@@ -34,7 +34,7 @@ export class LineException {
  * @param {String} str
  * @returns {Array}
  */
-export const argify = str => str.replace(/,/gm, '').split(' ');
+export const argify = str => str.split(', ');
 
 /**
  * @param {String} line
@@ -103,7 +103,7 @@ export const isScopedLabel = arg => arg.startsWith('#');
  * @param {String} str
  * @returns {String}
  */
-export const normalize = str => str.split(' ').filter(x => x !== '').join(' ');
+export const normalize = str => str.replace(/ +/g, ' ');
 
 /**
  * cast all hex literals (0xABC) in a string to numbers
@@ -134,7 +134,7 @@ export const popStack = () => {
 
 /**
  * push an item to the global call stack
- * @param {String} namespace the space we are moving into
+ * @param {String} namespace the space to move into
  */
 export const pushStack = namespace => {
   const stack = global.callStack;

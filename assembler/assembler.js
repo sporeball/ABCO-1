@@ -35,8 +35,7 @@ let contents;
 function assembler () {
   const { file } = args;
 
-  // get file contents
-  // also normalizes line endings to LF
+  // get file contents, and normalize line endings to LF
   try {
     contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }));
   } catch (e) {

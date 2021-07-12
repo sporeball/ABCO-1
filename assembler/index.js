@@ -147,7 +147,7 @@ export default function assemble (input, args) {
 /**
  * root preparation function
  * reshapes the contents of a file
- * this is used to prepare the main program, but also any imports
+ * this is used to prepare the main program, but also the contents of any imported files
  * @param {String} contents
  * @returns {Array}
  */
