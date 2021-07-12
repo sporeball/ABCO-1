@@ -76,7 +76,7 @@ export function validate (instruction, labels = [], paramCount = 0) {
       throw new LineException(`wrong number of arguments (${args.length} given)`);
     }
 
-    const [A, B, C] = args;
+    let [A, B, C] = args;
     // A and B validation
     if (!isFinite(A) && !isMacroParameter(A)) {
       throw new LineException('invalid value for argument A');
@@ -88,7 +88,8 @@ export function validate (instruction, labels = [], paramCount = 0) {
     // C validation
     if (C !== undefined && !isMacroParameter(C)) {
       if (isFinite(C)) {
-        if (C % 6 !== 0) {
+        C = Number(C);
+        if (C % 6 !== 0 && C !== 32767) {
           throw new LineException('invalid value for argument C');
         }
       } else if (C.startsWith('#')) {
