@@ -32,14 +32,20 @@ export function prep (contents) {
       if (statements.includes(line)) {
         throw new LineException('an identical import statement already exists');
       }
+      statements.push(line);
 
       const args = line.split(' ');
 
-      // "from" and file check
+      // format check
       if (args[args.length - 1] === 'from') {
         throw new LineException('a file to import from must be given');
       }
       if (args[args.length - 2] !== 'from') {
+        throw new LineException('malformed import statement');
+      }
+
+      // star check
+      if (line.includes('*') && !line.match(/^@import \* from [^*]+$/)) {
         throw new LineException('malformed import statement');
       }
 
@@ -51,8 +57,6 @@ export function prep (contents) {
       if (args.slice(args.length - 2).join(' ').includes(',')) {
         throw new LineException('malformed import statement');
       }
-
-      statements.push(line);
     } else {
       throw new LineException('invalid use of @');
     }
@@ -91,23 +95,30 @@ export function add (imp) {
   Macro.prep(contents);
   Util.popStack();
 
-  const extMacros = (contents.join('\n').match(/%macro .*?%endmacro/gs) || [])
-    .map(macro => macro.split('\n'));
-
   global.lineNo = impLine;
 
-  // for each macro we want to import...
-  for (const impMacro of impMacros) {
-    // make sure a relevant opening can be found
-    const extIdx = extMacros.findIndex(ext => ext[0].startsWith(`%macro ${impMacro} `));
-    if (extIdx === -1) {
-      throw new LineException(`macro "${impMacro}" not found`);
-    }
+  let extMacros = (contents.join('\n').match(/%macro .*?%endmacro/gs) || [])
+    .map(macro => macro.split('\n'));
 
-    // try to create the macro
+  // if we're not importing all...
+  if (impMacros[0] !== '*') {
+    // make sure a relevant opening can be found for each macro we want to import
+    for (const impMacro of impMacros) {
+      if (extMacros.findIndex(ext => ext[0].startsWith(`%macro ${impMacro}`)) === -1) {
+        throw new LineException(`macro "${impMacro}" not found`);
+      }
+    }
+    // filter the macros to only those we want to import
+    extMacros = extMacros.filter(ext =>
+      impMacros.some(imp => ext[0].startsWith(`%macro ${imp} `))
+    );
+  }
+
+  // try to create each macro that remains
+  for (const extMacro of extMacros) {
     Util.pushStack(impFile);
-    global.lineNo = extIdx;
-    Macro.create(extMacros[extIdx]);
+    global.lineNo = contents.findIndex(line => line === extMacro[0]) + 1;
+    Macro.create(extMacro);
     Util.popStack();
   }
 }
