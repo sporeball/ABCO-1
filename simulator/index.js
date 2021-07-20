@@ -6,6 +6,9 @@
 */
 
 import * as Util from './util.js';
+import * as Display from './display.js';
+
+global.display = Array(32).fill(' ');
 
 /**
  * main function
@@ -34,8 +37,15 @@ export default function simulate (rom) {
     } else {
       ptr++;
     }
+
+    if (A >= 32736) {
+      Display.write(A, user[A]);
+    }
   }
 
   console.log('user space:');
   console.log(user);
+
+  console.log('output:');
+  Display.show();
 }
