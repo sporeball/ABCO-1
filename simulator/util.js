@@ -27,7 +27,7 @@ export function decompile (rom) {
     .map(pair => pair.split('').map(byte => byte.charCodeAt(0))) // convert bytes to integers
     .map(pair => (256 * pair[0]) + pair[1]); // combine pairs into single integers
 
-  rom = [...Array(rom.length / 3)].map(x => rom.splice(0, 3)) // split in chunks of 3
+  rom = [...Array(rom.length / 3)].map(x => rom.splice(0, 3)); // split in chunks of 3
 
   return rom;
 }

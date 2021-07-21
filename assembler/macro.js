@@ -136,6 +136,7 @@ export function expand (instruction, top = false, labels = []) {
   let [name, ...args] = instruction.split(' ');
   const { params, dependencies } = global.macros[name];
   const lines = [...global.macros[name].lines];
+  labels = labels.concat(global.macros[name].labels);
 
   args = args.map(arg => arg.replace(/,/gm, ''));
 

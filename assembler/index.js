@@ -64,7 +64,6 @@ export default function assemble (input, args) {
     const opening = macro[0];
     const openingIdx = contents.indexOf(opening) + 1;
     global.lineNo = openingIdx;
-
     // create the macro
     Macro.create(macro);
     // blank out the lines it consists of

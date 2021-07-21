@@ -8,6 +8,9 @@
 import * as Util from './util.js';
 import * as Display from './display.js';
 
+// this is the most counter-intuitive syntax of all time
+import logUpdate from 'log-update';
+
 global.display = Array(32).fill(' ');
 
 /**
@@ -15,20 +18,20 @@ global.display = Array(32).fill(' ');
  * @param {String} rom the ROM to simulate, cast to a string
  */
 export default function simulate (rom) {
-  const decompiled = Util.decompile(rom);
   const user = Array(32768).fill(0);
   let ptr = 0;
-  let A, B, C = 0;
-  let display = Array(32).fill(' ');
+  let A = 0;
+  let B = 0;
+  let C = 0;
+
+  const decompiled = Util.decompile(rom);
 
   user[0] = 1;
 
-  console.log('decompiled code:');
-  console.log(Util.prettify(decompiled));
-
   while (C !== 32767) {
-    let instr = decompiled[ptr];
+    const instr = decompiled[ptr];
     [A, B, C] = instr;
+    // logUpdate(`currently executing: ${instr.join(', ')}`);
 
     user[A] += user[B];
     if (user[A] > 255) {
@@ -43,7 +46,7 @@ export default function simulate (rom) {
     }
   }
 
-  console.log('user space:');
+  console.log('userland:');
   console.log(user);
 
   console.log('output:');
