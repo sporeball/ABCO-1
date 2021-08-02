@@ -13,20 +13,6 @@ import * as Import from './import.js';
 import * as Util from './util.js';
 import { Exception, isBlank, isImport, isLabel, isMacro } from './util.js';
 
-import fs from 'fs';
-
-// last in, first out
-global.callStack = {
-  namespaces: [],
-  lines: []
-};
-
-global.lineNo = 1;
-global.ip = 0;
-
-global.labels = {};
-global.macros = {};
-
 let contents; // file contents
 let bytes = ''; // final byte stream
 
@@ -37,6 +23,8 @@ let bytes = ''; // final byte stream
  */
 export default function assemble (input) {
   contents = input;
+
+  Util.resetGlobalState();
   global.callStack.namespaces.unshift(global.file);
 
   // initial processing
