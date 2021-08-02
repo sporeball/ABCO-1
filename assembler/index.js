@@ -33,11 +33,10 @@ let bytes = ''; // final byte stream
 /**
  * main function
  * @param {String} input
- * @param {Object} args
+ * @returns {String}
  */
-export default function assemble (input, args) {
+export default function assemble (input) {
   contents = input;
-  global.file = args.file;
   global.callStack.namespaces.unshift(global.file);
 
   // initial processing
@@ -133,14 +132,9 @@ export default function assemble (input, args) {
 
   // add halt condition
   bytes += String.fromCharCode(0x00, 0x00, 0x00, 0x00, 0x7F, 0xFF);
-  const length = bytes.length;
 
-  // pad with null bytes until 32K
-  bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
-
-  fs.writeFile(args.out, bytes, 'binary', () => {});
-  Util.success('finished!');
-  Util.summary(length);
+  // done
+  return bytes;
 }
 
 /**

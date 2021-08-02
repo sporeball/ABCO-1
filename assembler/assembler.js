@@ -6,6 +6,7 @@
 */
 
 import assemble from './index.js';
+import * as Util from './util.js';
 import { Exception, LineException, info } from './util.js';
 
 import fs from 'fs';
@@ -33,7 +34,8 @@ const args = yeow({
 let contents;
 
 function assembler () {
-  const { file } = args;
+  const { file, out } = args;
+  global.file = file;
 
   // get file contents, and normalize line endings to LF
   try {
@@ -42,7 +44,16 @@ function assembler () {
     throw new Exception('file not found');
   }
 
-  assemble(contents, args);
+  let bytes = assemble(contents);
+  const length = bytes.length;
+
+  // pad with null bytes until 32K
+  bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
+
+  // finish
+  fs.writeFile(out, bytes, 'binary', () => {});
+  Util.success('finished!');
+  Util.summary(length);
 }
 
 try {
