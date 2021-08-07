@@ -10,27 +10,24 @@ import { decompile, resetGlobalState } from './util.js';
 
 import Tentamen from 'tentamen';
 
-const test = input => {
-  return assemble(input);
-}
+global.file = '[code]';
 
 let tentamen = new Tentamen({
-  fn: input => test(input),
-  before: input => {
+  fn: input => assemble(input),
+  before: function (input) {
     return input.split('/')
       .map(instr => instr.replace(/,/gm, ', '))
       .join('\n');
   },
-  after: output => {
-    resetGlobalState();
+  after: function (output) {
     return decompile(output)
-      .slice(0, -1)
-      .join(',');
-  }
+      .slice(0, -1);
+  },
+  error: e => e.message
 });
 
 tentamen.suite('simple cases');
-tentamen.add('basic case', '1,2,0/3,4,6', '1,2,0,3,4,6');
+tentamen.add('basic case', '1,2,0/3,4,6', [[1, 2, 0], [3, 4, 6]]);
 
 tentamen.done();
 

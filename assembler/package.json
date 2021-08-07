@@ -21,12 +21,12 @@
   },
   "homepage": "https://github.com/sporeball/ABCO-1#readme",
   "dependencies": {
-    "chalk": "^3.0.0",
+    "chalk": "^4.1.2",
     "eol": "^0.9.1",
     "log-update": "^4.0.0",
     "yeow": "^0.2.0"
   },
   "devDependencies": {
-    "tentamen": "^0.1.0"
+    "tentamen": "^0.2.0"
   }
 }

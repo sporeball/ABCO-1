@@ -13,16 +13,13 @@ import * as Import from './import.js';
 import * as Util from './util.js';
 import { Exception, isBlank, isImport, isLabel, isMacro } from './util.js';
 
-let contents; // file contents
-let bytes = ''; // final byte stream
-
 /**
  * main function
- * @param {String} input
+ * @param {String} contents code to assemble
  * @returns {String}
  */
-export default function assemble (input) {
-  contents = input;
+export default function assemble (contents) {
+  let bytes = '';
 
   Util.resetGlobalState();
   global.callStack.namespaces.unshift(global.file);

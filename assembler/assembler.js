@@ -31,10 +31,10 @@ const args = yeow({
   }
 });
 
-let contents;
-
 function assembler () {
   const { file, out } = args;
+  let contents;
+
   global.file = file;
 
   // get file contents, and normalize line endings to LF
