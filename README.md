@@ -4,12 +4,12 @@
 
 the **ABCO-1** is a hardware implementation of the OISC [abcout](https://esolangs.org/wiki/Abcout).
 
-each `abcout` instruction takes the form `A, B, C` and adds memory address `B` to memory address `A`; execution will then branch to memory address `C` if the result is greater than 255, or to the next instruction in sequence otherwise. it is assumed that addresses `A` and `B` both contain an unsigned 8-bit integer.
+each `abcout` instruction takes the form `A, B, C` and adds the value at memory address `B` to the value at memory address `A`; execution will then branch to memory address `C` if the result is greater than 255, or to the next instruction in sequence otherwise. it is assumed that addresses `A` and `B` both contain an unsigned 8-bit integer.
 
 this is equivalent to the following C-like syntax:
 
 ```c
-*a += *b; if (*a > 255) { *a %= 256; ip = *c; }
+*a += *b; if (*a > 255) { *a %= 256; ip = c; }
 ```
 
 instructions are not memory-mapped, and instead instructions and user space are kept in separate blocks of memory.
