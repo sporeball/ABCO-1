@@ -21,12 +21,20 @@ export class Exception {
   constructor (message) {
     this.message = chalk`{red error:} ${message}`;
   }
+
+  log () {
+    console.log(this.message);
+  }
 }
 
 export class LineException {
   constructor (message) {
     this.message = chalk`{red error:} ${message}`;
     this.trace = chalk`{cyan ${trace()}}`;
+  }
+
+  log () {
+    console.log(this.message + '\n' + this.trace);
   }
 }
 

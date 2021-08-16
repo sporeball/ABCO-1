@@ -60,8 +60,7 @@ try {
   assembler();
 } catch (e) {
   if (e instanceof Exception || e instanceof LineException) {
-    console.log(e.message);
-    console.log(e.trace);
+    e.log();
   } else {
     console.log(chalk.red('uncaught error'));
     info('this probably has nothing to do with your program; maybe file an issue?\n');
