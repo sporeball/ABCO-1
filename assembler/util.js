@@ -25,7 +25,8 @@ export class Exception {
 
 export class LineException {
   constructor (message) {
-    this.message = chalk`{red error:} ${message}\n{cyan ${trace()}}`;
+    this.message = chalk`{red error:} ${message}`;
+    this.trace = chalk`{cyan ${trace()}}`;
   }
 }
 
