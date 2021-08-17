@@ -23,10 +23,10 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "eol": "^0.9.1",
-    "log-update": "^4.0.0",
     "yeow": "^0.2.0"
   },
   "devDependencies": {
-    "tentamen": "^0.2.0"
+    "strip-ansi": "^7.0.0",
+    "tentamen": "^0.3.0"
   }
 }
