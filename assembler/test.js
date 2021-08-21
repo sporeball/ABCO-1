@@ -91,4 +91,66 @@ tentamen.add(
   'label "start" already in use'
 );
 
+/*
+  macros
+*/
+tentamen.suite('macros');
+
+tentamen.add(
+  'basic usage',
+  `%macro start 0
+    1, 0, 0
+    1, 1, 0
+  %endmacro
+  start`,
+  [[1, 0, 0], [1, 1, 0]]
+);
+tentamen.add(
+  'parameter usage',
+  `%macro double 1
+    %0, %0
+  %endmacro
+  double 10`,
+  [[10, 10, 6]]
+);
+
+// errors
+tentamen.add(
+  'invalid macro name',
+  `%macro Start 0
+    1, 0, 0
+  %endmacro`,
+  'invalid macro name "Start"'
+);
+tentamen.add(
+  'unmatched statement',
+  `%macro unclosed 0
+    1, 0, 0`,
+  'unmatched macro opening statement'
+);
+tentamen.add(
+  'nesting',
+  `%macro outer 0
+    %macro inner 0
+      1, 0, 0
+    %endmacro
+  %endmacro`,
+  'macros cannot define other macros'
+);
+tentamen.add(
+  'parameter out of range',
+  `%macro thing 0
+    1, 1, %0
+  %endmacro`,
+  'parameter out of range'
+);
+tentamen.add(
+  'parameter rendered invalid',
+  `%macro thing 1
+    0, 0, %0
+  %endmacro
+  thing 3`,
+  'parameter rendered invalid after expansion'
+);
+
 tentamen.done();
