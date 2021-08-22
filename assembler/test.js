@@ -153,4 +153,25 @@ tentamen.add(
   'parameter rendered invalid after expansion'
 );
 
+/*
+  imports
+*/
+tentamen.suite('imports');
+
+// if this test passes, we can assume that imports are working properly,
+// since import * performs less work than an import of this form
+tentamen.add(
+  'single import',
+  `@import jmp from ../prog/toolbox
+  jmp 12`,
+  [[0, 7, 6], [0, 7, 12]]
+);
+
+// errors
+tentamen.add(
+  'malformed statement',
+  '@import something somewhere',
+  'malformed import statement'
+);
+
 tentamen.done();
