@@ -21,6 +21,8 @@ it is important to keep in mind that abcout and its implementation in the form o
 
 - [simulator/](https://github.com/sporeball/ABCO-1/tree/master/simulator) - contains a software simulation of the ABCO-1.
 
+- [prog/](https://github.com/sporeball/ABCO-1/tree/master/prog) - contains example programs and useful imports.
+
 - hardware/ - coming soon.
 
 ### donate

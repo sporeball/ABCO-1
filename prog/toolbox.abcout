@@ -1,0 +1,50 @@
+; toolbox
+; small collection of useful macros
+
+; overhead
+; produces powers of 2, as well as 255, from the starting 1
+; other macros in this file assume that this has been run
+%macro overhead 0
+  1, 0
+  1, 1
+  2, 1
+  2, 2
+  3, 2
+  3, 3
+  4, 3
+  4, 4
+  5, 4
+  5, 5
+  6, 5
+  6, 6
+  7, 6
+  7, 7
+  8, 7
+  8, 6
+  8, 5
+  8, 4
+  8, 3
+  8, 2
+  8, 1
+  8, 0
+%endmacro
+
+%macro jmp 1
+  0, 7
+  0, 7, %0
+%endmacro
+
+%macro beq 2
+  %0, 8
+  %0, 0, %1
+%endmacro
+
+; move %0 to %1
+%macro mov 2
+  loop:
+    abcout %1, %1
+    beq %1, #final
+    jmp #loop
+  final:
+    abcout %1, %0
+%endmacro
