@@ -7,7 +7,7 @@
 
 import assemble from './index.js';
 import * as Util from './util.js';
-import { Exception, LineException, info } from './util.js';
+import { Exception, info } from './util.js';
 
 import fs from 'fs';
 import eol from 'eol';
@@ -59,11 +59,10 @@ function assembler () {
 try {
   assembler();
 } catch (e) {
-  if (e instanceof Exception || e instanceof LineException) {
-    e.log();
-  } else {
+  if (!(e instanceof Exception)) {
     console.log(chalk.red('uncaught error'));
     info('this probably has nothing to do with your program; maybe file an issue?\n');
-    console.log(e);
   }
+
+  console.log(e.stack);
 }

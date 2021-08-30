@@ -19,13 +19,7 @@ const tentamen = new Tentamen({
     return decompile(output)
       .slice(0, -1);
   },
-  error: e => {
-    if (e instanceof Error) {
-      return e.stack;
-    } else {
-      return e.message + '\n' + e.stack;
-    }
-  },
+  error: e => e.stack,
   afterError: e => {
     const message = stripAnsi(e).split('\n')[0];
     return message.slice(message.indexOf(':') + 2);

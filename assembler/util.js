@@ -19,22 +19,15 @@ export const success = str => {
 // error classes
 export class Exception {
   constructor (message) {
-    this.message = chalk`{red error:} ${message}`;
-  }
-
-  log () {
-    console.log(this.message);
+    this.message = message;
+    this.stack = chalk`{red error:} ${this.message}`;
   }
 }
 
-export class LineException {
-  constructor (message) {
-    this.message = chalk`{red error:} ${message}`;
-    this.trace = chalk`{cyan ${trace()}}`;
-  }
-
-  log () {
-    console.log(this.message + '\n' + this.trace);
+export class LineException extends Exception {
+  constructor(message) {
+    super(message);
+    this.stack = chalk`{red error:} ${this.message}\n{cyan ${trace()}}`;
   }
 }
 
