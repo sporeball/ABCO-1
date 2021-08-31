@@ -57,6 +57,30 @@ tentamen.add(
 );
 
 /*
+  instructions
+*/
+tentamen.suite('instructions');
+
+// errors
+tentamen.add(
+  'invalid comma separation',
+  'abcout 1 0 0',
+  'arguments must be comma-separated'
+);
+tentamen.add(
+  'too many arguments',
+  'abcout 1, 2, 3, 4, 5, 6',
+  'wrong number of arguments (6 given)'
+);
+tentamen.add(
+  'parameter out of range',
+  `%macro thing 0
+    1, 1, %0
+  %endmacro`,
+  'parameter out of range'
+);
+
+/*
   labels
 */
 tentamen.suite('labels');
@@ -130,13 +154,6 @@ tentamen.add(
     %endmacro
   %endmacro`,
   'macros cannot define other macros'
-);
-tentamen.add(
-  'parameter out of range',
-  `%macro thing 0
-    1, 1, %0
-  %endmacro`,
-  'parameter out of range'
 );
 tentamen.add(
   'parameter rendered invalid',

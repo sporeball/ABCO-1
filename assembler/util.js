@@ -25,7 +25,7 @@ export class Exception {
 }
 
 export class LineException extends Exception {
-  constructor(message) {
+  constructor (message) {
     super(message);
     this.stack = chalk`{red error:} ${this.message}\n{cyan ${trace()}}`;
   }
