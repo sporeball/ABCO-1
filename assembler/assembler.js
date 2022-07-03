@@ -5,9 +5,7 @@
   MIT license
 */
 
-import assemble from './index.js';
-import * as Util from './util.js';
-import { Exception, info } from './util.js';
+// import assemble from './index.js';
 
 import fs from 'fs';
 import eol from 'eol';
@@ -35,34 +33,21 @@ function assembler () {
   const { file, out } = args;
   let contents;
 
-  global.file = file;
-
   // get file contents, and normalize line endings to LF
   try {
     contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }));
-  } catch (e) {
-    throw new Exception('file not found');
-  }
+  } catch (e) { }
 
-  let bytes = assemble(contents);
-  const length = bytes.length;
+  // let bytes = assemble(contents);
+  // const length = bytes.length;
 
   // pad with null bytes until 32K
-  bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
+  // bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
 
   // finish
-  fs.writeFile(out, bytes, 'binary', () => {});
-  Util.success('finished!');
-  Util.summary(length);
+  // fs.writeFile(out, bytes, 'binary', () => {});
 }
 
 try {
   assembler();
-} catch (e) {
-  if (!(e instanceof Exception)) {
-    console.log(chalk.red('uncaught error'));
-    info('this probably has nothing to do with your program; maybe file an issue?\n');
-  }
-
-  console.log(e.stack);
-}
+} catch (e) { }

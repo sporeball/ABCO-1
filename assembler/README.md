@@ -1,6 +1,11 @@
 ## assembler
 this folder contains an assembler for ABCO-1 ROM files, built with Node.js.
 
+### bleeding branch disclaimer
+**this is the bleeding edge version of the assembler.** all previous code was **completely removed** from this version on July 3, 2022, to allow for a rewrite and rethinking of the entire assembler. **not all previously available functionality is guaranteed to work properly, or even be available at all. your programs will break here.**
+
+you may wish to use the [version on the master branch](https://github.com/sporeball/ABCO-1/tree/master/assembler) instead.
+
 ### usage
 first, clone the ABCO-1 repository, `cd` into this directory, and install the assembler's dependencies:
 

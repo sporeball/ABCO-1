@@ -1,6 +1,6 @@
 {
   "name": "abco-1-assembler",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "an assembler for ABCO-1 ROM files",
   "type": "module",
   "exports": "./index.js",
@@ -8,7 +8,6 @@
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "scripts": {
-    "test": "node test.js"
   },
   "repository": {
     "type": "git",
