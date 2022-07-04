@@ -38,6 +38,13 @@ function assembler () {
     contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }));
   } catch (e) { }
 
+  let tokens = contents.replace(/^[\t ]+/gm, '') // mapped trim
+    .replace(/\n+$/g, '') // remove trailing
+    .matchAll(/,|\n|[^\s,]+/g) // raw tokenize
+  tokens = [...tokens]; // spread
+
+  console.log(tokens);
+
   // let bytes = assemble(contents);
   // const length = bytes.length;
 
