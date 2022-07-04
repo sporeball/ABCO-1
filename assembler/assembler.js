@@ -29,6 +29,14 @@ const args = yeow({
   }
 });
 
+class Token {
+  constructor(raw) {
+    this.value = raw[0];
+    this.start = raw.index; // start position (inclusive)
+    this.end = this.start + this.value.length; // end position (exclusive)
+  }
+}
+
 function assembler () {
   const { file, out } = args;
   let contents;
@@ -38,10 +46,31 @@ function assembler () {
     contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }));
   } catch (e) { }
 
-  let tokens = contents.replace(/^[\t ]+/gm, '') // mapped trim
-    .replace(/\n+$/g, '') // remove trailing
-    .matchAll(/,|\n|[^\s,]+/g) // raw tokenize
-  tokens = [...tokens]; // spread
+  // tokenize
+  let tokens = contents.replace(/\n+$/g, '') // remove trailing
+    .matchAll(/,|\n|[^\s,]+/g) // raw match
+  tokens = [...tokens] // spread
+    .map(tok => new Token(tok)); // convert
+
+  // each token will start to gain some more information
+
+  // lines and columns
+  let ln = 1; // current line
+  let cn = 1; // current column
+  let lineStart = 0; // start value of line's first token
+  tokens.forEach((tok, idx) => {
+    // update column
+    cn = tok.start - lineStart + 1;
+    // assign
+    tok.line = ln;
+    tok.col = cn;
+    // reset
+    if (tok.value === '\n') {
+      ln++;
+      cn = 1;
+      lineStart = tok.end;
+    }
+  });
 
   console.log(tokens);
 
