@@ -30,10 +30,13 @@ const args = yeow({
 });
 
 class Token {
-  constructor(raw) {
+  constructor(raw, line, col) {
     this.value = raw[0];
-    this.start = raw.index; // start position (inclusive)
-    this.end = this.start + this.value.length; // end position (exclusive)
+    // at some point it should become apparent whether we need these fields
+    // this.start = raw.index; // start position (inclusive)
+    // this.end = this.start + this.value.length; // end position (exclusive)
+    this.line = line;
+    this.col = col;
   }
 }
 
@@ -43,34 +46,34 @@ function assembler () {
 
   // get file contents, and normalize line endings to LF
   try {
-    contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }));
+    contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }).trimEnd());
   } catch (e) { }
 
-  // tokenize
-  let tokens = contents.replace(/\n+$/g, '') // remove trailing
-    .matchAll(/,|\n|[^\s,]+/g) // raw match
-  tokens = [...tokens] // spread
-    .map(tok => new Token(tok)); // convert
+  let tokens = [];
 
-  // each token will start to gain some more information
-
-  // lines and columns
-  let ln = 1; // current line
-  let cn = 1; // current column
-  let lineStart = 0; // start value of line's first token
-  tokens.forEach((tok, idx) => {
-    // update column
-    cn = tok.start - lineStart + 1;
-    // assign
-    tok.line = ln;
-    tok.col = cn;
-    // reset
-    if (tok.value === '\n') {
-      ln++;
-      cn = 1;
-      lineStart = tok.end;
+  // scan
+  let line = 1;
+  let col = 1;
+  // matches:
+  // (1) comma
+  // (2) newline
+  // (3) consecutive spaces and/or tabs
+  // (4) anything else
+  for (let scan of contents.matchAll(/,|\n|[ \t]+|[^\s,]+/g)) {
+    // tokenize
+    const token = new Token(scan, line, col);
+    tokens.push(token);
+    // update position
+    col += token.value.length;
+    if (token.value === '\n') {
+      line++;
+      col = 1;
     }
-  });
+  }
+
+  // remove tokens matching (3)
+  // we only scanned them to keep things sane when finding positions
+  tokens = tokens.filter(token => !token.value.match(/^[ \t]+$/));
 
   console.log(tokens);
 
@@ -86,4 +89,6 @@ function assembler () {
 
 try {
   assembler();
-} catch (e) { }
+} catch (e) {
+  console.error(e);
+}
