@@ -30,11 +30,8 @@ const args = yeow({
 });
 
 class Token {
-  constructor(raw, line, col) {
-    this.value = raw[0];
-    // at some point it should become apparent whether we need these fields
-    // this.start = raw.index; // start position (inclusive)
-    // this.end = this.start + this.value.length; // end position (exclusive)
+  constructor(value, line, col) {
+    this.value = value;
     this.line = line;
     this.col = col;
   }
@@ -61,19 +58,18 @@ function assembler () {
   // (4) anything else
   for (let scan of contents.matchAll(/,|\n|[ \t]+|[^\s,]+/g)) {
     // tokenize
-    const token = new Token(scan, line, col);
-    tokens.push(token);
-    // update position
-    col += token.value.length;
-    if (token.value === '\n') {
+    const value = scan[0];
+    // only add tokens that do not match (3) to the token stream...
+    if (!value.match(/[ \t]+/)) {
+      tokens.push(new Token(value, line, col));
+    }
+    // but update our position in the source file regardless
+    col += value.length;
+    if (value === '\n') {
       line++;
       col = 1;
     }
   }
-
-  // remove tokens matching (3)
-  // we only scanned them to keep things sane when finding positions
-  tokens = tokens.filter(token => !token.value.match(/^[ \t]+$/));
 
   console.log(tokens);
 
