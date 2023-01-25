@@ -7,9 +7,9 @@
 
 // import assemble from './index.js';
 
+import tokenize from './tokenizer.js';
 import fs from 'fs';
 import eol from 'eol';
-import chalk from 'chalk';
 import yeow from 'yeow';
 
 const args = yeow({
@@ -29,49 +29,25 @@ const args = yeow({
   }
 });
 
-class Token {
-  constructor(value, line, col) {
-    this.value = value;
-    this.line = line;
-    this.col = col;
-  }
-}
-
 function assembler () {
   const { file, out } = args;
   let contents;
 
   // get file contents, and normalize line endings to LF
   try {
-    contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }).trimEnd());
+    contents = eol.lf(fs.readFileSync(file, { encoding: 'utf-8' }).trim());
   } catch (e) { }
 
-  let tokens = [];
+  contents = contents.split('\n')
+    .map(line => line.replace(/;.*/gm, '').trim()); // clean
 
-  // scan
-  let line = 1;
-  let col = 1;
-  // matches:
-  // (1) comma
-  // (2) newline
-  // (3) consecutive spaces and/or tabs
-  // (4) anything else
-  for (let scan of contents.matchAll(/,|\n|[ \t]+|[^\s,]+/g)) {
-    // tokenize
-    const value = scan[0];
-    // only add tokens that do not match (3) to the token stream...
-    if (!value.match(/[ \t]+/)) {
-      tokens.push(new Token(value, line, col));
-    }
-    // but update our position in the source file regardless
-    col += value.length;
-    if (value === '\n') {
-      line++;
-      col = 1;
-    }
+  if (contents.at(-1).length === 0) {
+    contents = contents.slice(0, -1);
   }
 
-  console.log(tokens);
+  contents = contents.join('\n');
+  const tokens = tokenize(contents);
+  // console.log(tokens);
 
   // let bytes = assemble(contents);
   // const length = bytes.length;
