@@ -8,6 +8,7 @@
 // import assemble from './index.js';
 
 import tokenize from './tokenizer.js';
+import parse from './parser.js';
 import fs from 'fs';
 import eol from 'eol';
 import yeow from 'yeow';
@@ -47,6 +48,8 @@ function assembler () {
 
   contents = contents.join('\n');
   const tokens = tokenize(contents);
+  const AST = parse(tokens);
+  console.dir(AST, { depth: null });
   // console.log(tokens);
 
   // let bytes = assemble(contents);

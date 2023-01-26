@@ -6,8 +6,12 @@ const tokenTypes = {
   hex: /^\$[0-9a-fA-F]+/,
   comma: ',',
   colon: ':',
-  percent: '%',
-  at: '@',
+  macroStart: '%macro',
+  macroEnd: '%endmacro',
+  macroParameter: /^%0|^%[1-9]\d*/,
+  import: 'import',
+  // percent: '%',
+  // at: '@',
   newline: '\n',
   whitespace: /^\s+/
 };
