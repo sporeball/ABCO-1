@@ -1,6 +1,7 @@
 function parseIdentifier (tokens) {
   const identifier = tokens.shift();
   const args = [];
+  // eat args
   while (true) {
     if (
       tokens[0] === undefined ||
@@ -20,6 +21,7 @@ function parseIdentifier (tokens) {
     }
     tokens.shift(); // skip the comma
   }
+  // assert valid arg types
   if (!args.every(arg => {
     return (
       arg.type === 'number' ||

@@ -9,6 +9,7 @@
 
 import tokenize from './tokenizer.js';
 import parse from './parser.js';
+import * as Assembler from './index.js';
 import fs from 'fs';
 import eol from 'eol';
 import yeow from 'yeow';
@@ -31,6 +32,13 @@ const args = yeow({
 });
 
 function assembler () {
+  // pollution
+  global.ASM = {};
+  global.ASM.bytes = '';
+  global.ASM.ptr = 0;
+  global.ASM.labels = {};
+  global.ASM.macros = {};
+
   const { file, out } = args;
   let contents;
 
@@ -50,7 +58,7 @@ function assembler () {
   const tokens = tokenize(contents);
   const AST = parse(tokens);
 
-  console.dir(AST, { depth: null });
+  // console.dir(AST, { depth: null });
 
   // all top-level nodes in the AST should be either a command or some sort of
   // definition
@@ -65,16 +73,35 @@ function assembler () {
     throw new Error(`found bare token of type ${invalid.type}`);
   }
 
-  // let bytes = assemble(contents);
-  // const length = bytes.length;
+  for (const topLevelNode of AST) {
+    Assembler.evaluateNode(topLevelNode);
+  }
 
+  // finished
   // pad with null bytes until 32K
-  // bytes += String.fromCharCode(0x00).repeat(32768 - bytes.length);
+  global.ASM.bytes += String.fromCharCode(0x00)
+    .repeat(32768 - global.ASM.bytes.length);
 
-  // finish
-  // fs.writeFile(out, bytes, 'binary', () => {});
+  // write out
+  fs.writeFile(out, global.ASM.bytes, 'binary', () => {});
 }
 
+/**
+ * evaluate an AST node, returning a value
+ * @param {object} ASTNode
+ */
+// function evaluateNode (ASTNode) {
+//   switch (ASTNode.type) {
+//     case 'command':
+//       return new Assembler.Command(ASTNode);
+//     case 'labelDefinition':
+//       return new Assembler.Label(ASTNode);
+//     case 'macroDefinition':
+//       return new Assembler.Macro(ASTNode);
+//   }
+// }
+
+// main
 try {
   assembler();
 } catch (e) {
