@@ -58,7 +58,7 @@ function assembler () {
   const tokens = tokenize(contents);
   const AST = parse(tokens);
 
-  // console.dir(AST, { depth: null });
+  console.dir(AST, { depth: null });
 
   // all top-level nodes in the AST should be either a command or some sort of
   // definition

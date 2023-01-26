@@ -12,21 +12,20 @@ function abcout (ASTNode) {
     throw new Error(`expected at most 3 args, got ${args.length}`);
   }
   // get args
-  args = args.map(arg => {
-    switch (arg.type) {
-      case 'number':
-        return arg.value;
-      default:
-        return arg;
-    }
-  });
+  args = args.map(valueFromASTNode);
   let [A, B, C] = args;
+  // if the C argument is undefined, default to the address of the next
+  // instruction
   if (C === undefined) {
-    C = global.ASM.ptr + 6; // default to the next instruction
+    C = global.ASM.ptr + 6;
+  }
+  // C argument should point to the beginning of an instruction
+  if (C % 6 !== 0) {
+    throw new Error('assembler: invalid branch value');
   }
   // write each
   byteWrite(A, B, C);
-  // console.log(A, B, C);
+  // point to the next instruction
   global.ASM.ptr += 6;
 }
 
@@ -38,7 +37,7 @@ function macro (ASTNode) {
 }
 
 /**
- * evaluate an AST node of type `command`
+ * evaluate a top-level AST node of type `command`
  * @param {object} ASTNode
  */
 function command (ASTNode) {
@@ -49,19 +48,30 @@ function command (ASTNode) {
 }
 
 /**
- * evaluate an AST node of type `labelDefinition`
+ * evaluate a top-level AST node of type `labelDefinition`
  * @param {object} ASTNode
  */
 function labelDefinition (ASTNode) {
+  const { name } = ASTNode;
+  // check that label is undefined
+  if (global.ASM.labels[name] !== undefined) {
+    throw new Error(`assembler: label ${name} already defined`);
+  }
+  // set
+  global.ASM.labels[name] = global.ASM.ptr;
 }
 
 /**
- * evaluate an AST node of type `macroDefinition`
+ * evaluate a top-level AST node of type `macroDefinition`
  * @param {object} ASTNode
  */
 function macroDefinition (ASTNode) {
 }
 
+/**
+ * evaluate an AST node
+ * @param {object} ASTNode
+ */
 export function evaluateNode (ASTNode) {
   switch (ASTNode.type) {
     case 'command':
@@ -74,6 +84,24 @@ export function evaluateNode (ASTNode) {
   throw new Error(
     `assembler: no evaluation rule for token of type ${ASTNode.type}`
   );
+}
+
+/**
+ * get a value from an AST node
+ * good for arguments
+ * @param {object} ASTNode
+ */
+function valueFromASTNode (ASTNode) {
+  if (ASTNode.type === 'number') {
+    return ASTNode.value;
+  }
+  if (ASTNode.type === 'label') {
+    const labelPtr = global.ASM.labels[ASTNode.name];
+    if (labelPtr === undefined) {
+      throw new Error(`assembler: undefined label ${ASTNode.name}`);
+    }
+    return labelPtr;
+  }
 }
 
 function byteWrite (...values) {
