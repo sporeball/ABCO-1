@@ -64,20 +64,23 @@ function parseMacroDefinition (tokens) {
     throw new Error('invalid macro name');
   }
   const nParams = eat(tokens, 'number');
-  const lines = [];
+  let contents = [];
   eat(tokens, 'newline');
   while (true) {
     if (tokens[0]?.type === 'macroEnd') {
       break;
     }
-    lines.push(eat(tokens, 'identifier'));
-    eat(tokens, 'newline');
+    contents.push(eat(tokens));
   }
   tokens.shift(); // skip the macro end
+  contents = contents.filter(token => token.type !== 'newline');
+  if (!contents.every(token => token.type === 'command')) {
+    throw new Error('invalid token in macro definition');
+  }
   return {
     type: 'macroDefinition',
     params: nParams.value,
-    lines
+    contents
   };
 }
 
