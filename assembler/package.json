@@ -25,6 +25,7 @@
     "yeow": "^0.2.0"
   },
   "devDependencies": {
+    "semistandard": "^16.0.1",
     "strip-ansi": "^7.0.1",
     "tentamen": "^0.3.0"
   }

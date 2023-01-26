@@ -1,12 +1,5 @@
 function parseIdentifier (tokens) {
   const identifier = tokens.shift();
-  if (tokens[0].type === 'colon') {
-    tokens.shift(); // skip
-    return {
-      type: 'label',
-      value: identifier.value
-    };
-  }
   const args = [];
   while (true) {
     if (tokens[0]?.type === 'newline') {
@@ -102,9 +95,9 @@ function parseMacroDefinition (tokens) {
   };
 }
 
-function parseImport (tokens) {
-  // TODO
-}
+// TODO
+// function parseImport (tokens) {
+// }
 
 export default function parse (tokens) {
   let tree = [];

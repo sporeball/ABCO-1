@@ -49,8 +49,21 @@ function assembler () {
   contents = contents.join('\n');
   const tokens = tokenize(contents);
   const AST = parse(tokens);
+
   console.dir(AST, { depth: null });
-  // console.log(tokens);
+
+  // all top-level nodes in the AST should be either a command or some sort of
+  // definition
+  const invalid = AST.find(topLevelNode => {
+    return (
+      topLevelNode.type !== 'command' &&
+      topLevelNode.type !== 'labelDefinition' &&
+      topLevelNode.type !== 'macroDefinition'
+    );
+  });
+  if (invalid) {
+    throw new Error(`found bare token of type ${invalid.type}`);
+  }
 
   // let bytes = assemble(contents);
   // const length = bytes.length;

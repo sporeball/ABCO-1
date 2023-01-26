@@ -36,7 +36,7 @@ export default function tokenize (input) {
   while (input.length > 0) {
     const token = Object.entries(tokenTypes)
       .map(entry => {
-        let [type, matcher] = entry;
+        const [type, matcher] = entry;
         const match = stringMatch(input, matcher);
         if (match) {
           return {
