@@ -90,6 +90,7 @@ function parseMacroDefinition (tokens) {
   }
   return {
     type: 'macroDefinition',
+    name: name.value,
     params: nParams.value,
     contents
   };
