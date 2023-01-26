@@ -2,11 +2,17 @@ function parseIdentifier (tokens) {
   const identifier = tokens.shift();
   const args = [];
   while (true) {
-    if (tokens[0]?.type === 'newline') {
+    if (
+      tokens[0] === undefined ||
+      tokens[0]?.type === 'newline'
+    ) {
       break;
     }
     args.push(eat(tokens));
-    if (tokens[0]?.type === 'newline') {
+    if (
+      tokens[0] === undefined ||
+      tokens[0]?.type === 'newline'
+    ) {
       break;
     }
     if (tokens[0]?.type !== 'comma') {
