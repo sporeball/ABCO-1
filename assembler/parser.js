@@ -74,7 +74,12 @@ function parseMacroDefinition (tokens) {
   }
   tokens.shift(); // skip the macro end
   contents = contents.filter(token => token.type !== 'newline');
-  if (!contents.every(token => token.type === 'command')) {
+  if (!contents.every(token => {
+    return (
+      token.type === 'command' ||
+      token.type === 'label'
+    );
+  })) {
     throw new Error('invalid token in macro definition');
   }
   return {
