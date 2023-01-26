@@ -21,6 +21,15 @@ function parseIdentifier (tokens) {
     }
     tokens.shift(); // skip the comma
   }
+  if (!args.every(arg => {
+    return (
+      arg.type === 'number' ||
+      arg.type === 'label' ||
+      arg.type === 'macroParameter'
+    );
+  })) {
+    throw new Error('invalid argument');
+  }
   return {
     type: 'command',
     head: identifier.value,
@@ -46,14 +55,18 @@ function parseHex (tokens) {
 }
 
 function parseLabel (tokens) {
-  tokens.shift(); // skip the colon
-  const name = tokens.shift();
-  if (name?.type !== 'identifier') {
-    throw new Error('invalid label name');
-  }
+  const label = tokens.shift();
   return {
     type: 'label',
-    name: name.value
+    name: label.value.slice(1)
+  };
+}
+
+function parseLabelDefinition (tokens) {
+  const label = tokens.shift();
+  return {
+    type: 'labelDefinition',
+    name: label.value.slice(1, -1)
   };
 }
 
@@ -77,7 +90,7 @@ function parseMacroDefinition (tokens) {
   if (!contents.every(token => {
     return (
       token.type === 'command' ||
-      token.type === 'label'
+      token.type === 'labelDefinition'
     );
   })) {
     throw new Error('invalid token in macro definition');
@@ -117,8 +130,10 @@ function eat (tokens, type) {
       return parseHex(tokens);
     case 'comma': // bare
       throw new Error('misplaced comma');
-    case 'colon':
+    case 'label':
       return parseLabel(tokens);
+    case 'labelDefinition':
+      return parseLabelDefinition(tokens);
     case 'macroStart':
       return parseMacroDefinition(tokens);
     case 'macroEnd': // bare
