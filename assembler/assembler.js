@@ -86,21 +86,6 @@ function assembler () {
   fs.writeFile(out, global.ASM.bytes, 'binary', () => {});
 }
 
-/**
- * evaluate an AST node, returning a value
- * @param {object} ASTNode
- */
-// function evaluateNode (ASTNode) {
-//   switch (ASTNode.type) {
-//     case 'command':
-//       return new Assembler.Command(ASTNode);
-//     case 'labelDefinition':
-//       return new Assembler.Label(ASTNode);
-//     case 'macroDefinition':
-//       return new Assembler.Macro(ASTNode);
-//   }
-// }
-
 // main
 try {
   assembler();

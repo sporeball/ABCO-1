@@ -73,13 +73,15 @@ function parseLabelDefinition (tokens) {
 
 function parseMacroDefinition (tokens) {
   tokens.shift(); // skip the percent sign
+  // signature
   const name = tokens.shift();
   if (name?.type !== 'identifier') {
     throw new Error('invalid macro name');
   }
   const nParams = eat(tokens, 'number');
-  let contents = [];
   eat(tokens, 'newline');
+  // body
+  let contents = [];
   while (true) {
     if (tokens[0]?.type === 'macroEnd') {
       break;
@@ -101,6 +103,14 @@ function parseMacroDefinition (tokens) {
     name: name.value,
     params: nParams.value,
     contents
+  };
+}
+
+function parseMacroParameter (tokens) {
+  const parameter = tokens.shift();
+  return {
+    type: 'macroParameter',
+    index: Number(parameter.value.slice(1))
   };
 }
 
@@ -141,7 +151,7 @@ function eat (tokens, type) {
     case 'macroEnd': // bare
       throw new Error('misplaced macro end');
     case 'macroParameter':
-      return tokens.shift();
+      return parseMacroParameter(tokens);
     // case 'at':
       // return parseImport(tokens);
     case 'newline':
