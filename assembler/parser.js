@@ -49,7 +49,7 @@ function parseNumber (tokens) {
 
 function parseHex (tokens) {
   const literal = tokens.shift();
-  const value = parseInt(literal.slice(1), 16);
+  const value = parseInt(literal.value.slice(1), 16);
   return {
     type: 'number',
     value
