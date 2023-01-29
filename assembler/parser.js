@@ -26,6 +26,7 @@ function parseIdentifier (tokens) {
     return (
       arg.type === 'number' ||
       arg.type === 'label' ||
+      arg.type === 'macroLabel' ||
       arg.type === 'macroParameter'
     );
   })) {
@@ -71,6 +72,22 @@ function parseLabelDefinition (tokens) {
   };
 }
 
+function parseMacroLabel (tokens) {
+  const label = tokens.shift();
+  return {
+    type: 'macroLabel',
+    name: label.value.slice(2)
+  };
+}
+
+function parseMacroLabelDefinition (tokens) {
+  const label = tokens.shift();
+  return {
+    type: 'macroLabelDefinition',
+    name: label.value.slice(2, -1)
+  };
+}
+
 function parseMacroDefinition (tokens) {
   tokens.shift(); // skip the percent sign
   // signature
@@ -93,7 +110,7 @@ function parseMacroDefinition (tokens) {
   if (!contents.every(token => {
     return (
       token.type === 'command' ||
-      token.type === 'labelDefinition'
+      token.type === 'macroLabelDefinition'
     );
   })) {
     throw new Error('invalid token in macro definition');
@@ -146,6 +163,10 @@ function eat (tokens, type) {
       return parseLabel(tokens);
     case 'labelDefinition':
       return parseLabelDefinition(tokens);
+    case 'macroLabel':
+      return parseMacroLabel(tokens);
+    case 'macroLabelDefinition':
+      return parseMacroLabelDefinition(tokens);
     case 'macroStart':
       return parseMacroDefinition(tokens);
     case 'macroEnd': // bare

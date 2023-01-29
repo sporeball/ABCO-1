@@ -7,6 +7,8 @@ const tokenTypes = {
   comma: ',',
   labelDefinition: /^@[a-z][a-z0-9_]*:/,
   label: /^@[a-z][a-z0-9_]*/,
+  macroLabelDefinition: /^@@[a-z][a-z0-9_]*:/,
+  macroLabel: /^@@[a-z][a-z0-9_]*/,
   macroStart: '%macro',
   macroEnd: '%endmacro',
   macroParameter: /^%0|^%[1-9]\d*/,
