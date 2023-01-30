@@ -33,11 +33,12 @@ const args = yeow({
 
 function assembler () {
   // pollution
-  global.ASM = {};
-  global.ASM.bytes = '';
-  global.ASM.ptr = 0;
-  global.ASM.labels = {};
-  global.ASM.macros = {};
+  global.ASM = {
+    bytes: '',
+    ptr: 0,
+    labels: {},
+    macros: {}
+  };
 
   const { file, out } = args;
   let contents;
@@ -58,7 +59,7 @@ function assembler () {
   const tokens = tokenize(contents);
   const AST = parse(tokens);
 
-  console.dir(AST, { depth: null });
+  // console.dir(AST, { depth: null });
 
   // all top-level nodes in the AST should be either a command or some sort of
   // definition
@@ -73,8 +74,47 @@ function assembler () {
     throw new Error(`found bare token of type ${invalid.type}`);
   }
 
+  // step 1: determine length of macros
+  // grab from the AST
+  for (const macro of AST.filter(tln => tln.type === 'macroDefinition')) {
+    const { name, params, contents } = macro;
+    // get the total length of node contents
+    const length = contents.map(Assembler.nodeLength)
+      .reduce((a, c) => a + c, 0);
+    // intermediate value
+    global.ASM.macros[name] = {
+      params,
+      contents,
+      length
+    }
+  }
+
+  // step 2: determine local label addresses
+  for (const macro of Object.values(global.ASM.macros)) {
+    let ptr = 0;
+    macro.labels = {};
+    for (const node of macro.contents) {
+      ptr += Assembler.nodeLength(node);
+      if (node.type === 'macroLabelDefinition') {
+        macro.labels[node.name] = ptr;
+      }
+    }
+  }
+
+  // step 3: determine global label addresses
   for (const topLevelNode of AST) {
-    Assembler.evaluateNode(topLevelNode);
+    global.ASM.ptr += Assembler.nodeLength(topLevelNode);
+    if (topLevelNode.type === 'labelDefinition') {
+      global.ASM.labels[topLevelNode.name] = global.ASM.ptr;
+    }
+  }
+
+  // step 4: create program bytecode
+  // TODO: memoize macro bytecode
+  global.ASM.ptr = 0;
+  for (const command of AST.filter(tln => tln.type === 'command')) {
+    // console.log(command);
+    Assembler.genBytecode(command);
   }
 
   // finished

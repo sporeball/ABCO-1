@@ -30,60 +30,87 @@ function abcout (ASTNode) {
 }
 
 /**
- * evaluate a macro command
+ * generate the bytecode for an AST node of type `command`
  * @param {object} ASTNode
  */
-function macro (ASTNode) {
-}
-
-/**
- * evaluate a top-level AST node of type `command`
- * @param {object} ASTNode
- */
-function command (ASTNode) {
+export function genBytecode (ASTNode, macroLabels, macroParameters) {
+  // console.log('node', ASTNode);
+  let args = structuredClone(ASTNode.args);
+  args = args.map(arg => {
+    return argNodeToValue(arg, macroLabels, macroParameters);
+  });
+  // console.log('args:', args);
   if (ASTNode.head === 'abcout') {
-    return abcout(ASTNode);
+    byteWrite(...args);
+    if (args.length === 2) {
+      byteWrite(global.ASM.ptr + 6);
+    }
+    global.ASM.ptr += 6;
+  } else {
+    const macro = global.ASM.macros[ASTNode.head];
+    // console.dir(macro, { depth: null });
+    for (const node of macro.contents.filter(node => node.type === 'command')) {
+      genBytecode(node, macro.labels, args);
+    }
   }
-  return macro(ASTNode);
 }
 
-/**
- * evaluate a top-level AST node of type `labelDefinition`
- * @param {object} ASTNode
- */
-function labelDefinition (ASTNode) {
-  const { name } = ASTNode;
-  // check that label is undefined
-  if (global.ASM.labels[name] !== undefined) {
-    throw new Error(`assembler: label ${name} already defined`);
+function argNodeToValue (arg, macroLabels, macroParameters) {
+  if (typeof arg === 'number') {
+    return arg;
   }
-  // set
-  global.ASM.labels[name] = global.ASM.ptr;
+  if (arg.type === 'number') {
+    return arg.value;
+  }
+  if (arg.type === 'label') {
+    const value = global.ASM.labels[arg.name];
+    if (value === undefined) {
+      throw new Error(`assembler: undefined label ${arg.name}`);
+    }
+    return value;
+  }
+  if (arg.type === 'macroLabel') {
+    if (macroLabels === undefined) {
+      throw new Error(`assembler: undefined local label ${arg.name}`);
+    }
+    const value = macroLabels[arg.name];
+    if (value === undefined) {
+      throw new Error(`assembler: undefined local label ${arg.name}`);
+    }
+    return value + global.ASM.ptr;
+  }
+  if (arg.type === 'macroParameter') {
+    if (macroParameters === undefined) {
+      throw new Error(
+        `assembler: could not get macro parameter at index ${arg.index}`
+      );
+    }
+    const value = macroParameters[arg.index];
+    if (value === undefined) {
+      throw new Error(
+        `assembler: could not get macro parameter at index ${arg.index}`
+      );
+    }
+    return value;
+  }
 }
 
-/**
- * evaluate a top-level AST node of type `macroDefinition`
- * @param {object} ASTNode
- */
-function macroDefinition (ASTNode) {
-}
-
-/**
- * evaluate an AST node
- * @param {object} ASTNode
- */
-export function evaluateNode (ASTNode) {
+export function nodeLength (ASTNode) {
   switch (ASTNode.type) {
     case 'command':
-      return command(ASTNode);
-    case 'labelDefinition':
-      return labelDefinition(ASTNode);
-    case 'macroDefinition':
-      return macroDefinition(ASTNode);
+      if (ASTNode.head === 'abcout') {
+        return 6;
+      }
+      const macro = global.ASM.macros[ASTNode.head];
+      if (macro === undefined) {
+        throw new Error(`assembler: undefined macro ${ASTNode.head}`);
+      }
+      return macro.contents
+        .map(nodeLength)
+        .reduce((a, c) => a + c, 0);
+    default:
+      return 0;
   }
-  throw new Error(
-    `assembler: no evaluation rule for token of type ${ASTNode.type}`
-  );
 }
 
 /**
@@ -91,16 +118,11 @@ export function evaluateNode (ASTNode) {
  * good for arguments
  * @param {object} ASTNode
  */
-function valueFromASTNode (ASTNode) {
+function valueFromASTNode (ASTNode, macro) {
   if (ASTNode.type === 'number') {
     return ASTNode.value;
   }
   if (ASTNode.type === 'label') {
-    const labelPtr = global.ASM.labels[ASTNode.name];
-    if (labelPtr === undefined) {
-      throw new Error(`assembler: undefined label ${ASTNode.name}`);
-    }
-    return labelPtr;
   }
 }
 
