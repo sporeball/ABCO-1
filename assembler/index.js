@@ -33,11 +33,11 @@ function abcout (ASTNode) {
  * generate the bytecode for an AST node of type `command`
  * @param {object} ASTNode
  */
-export function genBytecode (ASTNode, macroLabels, macroParameters) {
+export function genBytecode (ASTNode, macroStart, macroLabels, macroParameters) {
   // console.log('node', ASTNode);
   let args = structuredClone(ASTNode.args);
   args = args.map(arg => {
-    return argNodeToValue(arg, macroLabels, macroParameters);
+    return argNodeToValue(arg, macroStart, macroLabels, macroParameters);
   });
   // console.log('args:', args);
   if (ASTNode.head === 'abcout') {
@@ -48,14 +48,19 @@ export function genBytecode (ASTNode, macroLabels, macroParameters) {
     global.ASM.ptr += 6;
   } else {
     const macro = global.ASM.macros[ASTNode.head];
-    // console.dir(macro, { depth: null });
+    const ptr = global.ASM.ptr;
+    // console.log('assembling', ASTNode.head);
+    // console.log('args', args);
+    // console.log('length', macro.length);
+    // console.log('labels', macro.labels);
+    // console.log('macro start', macroStart);
     for (const node of macro.contents.filter(node => node.type === 'command')) {
-      genBytecode(node, macro.labels, args);
+      genBytecode(node, ptr, macro.labels, args);
     }
   }
 }
 
-function argNodeToValue (arg, macroLabels, macroParameters) {
+function argNodeToValue (arg, macroStart, macroLabels, macroParameters) {
   if (typeof arg === 'number') {
     return arg;
   }
@@ -77,7 +82,8 @@ function argNodeToValue (arg, macroLabels, macroParameters) {
     if (value === undefined) {
       throw new Error(`assembler: undefined local label ${arg.name}`);
     }
-    return value + global.ASM.ptr;
+    // console.log('macro label', arg.name, value + macroStart);
+    return value + macroStart;
   }
   if (arg.type === 'macroParameter') {
     if (macroParameters === undefined) {
@@ -110,19 +116,6 @@ export function nodeLength (ASTNode) {
         .reduce((a, c) => a + c, 0);
     default:
       return 0;
-  }
-}
-
-/**
- * get a value from an AST node
- * good for arguments
- * @param {object} ASTNode
- */
-function valueFromASTNode (ASTNode, macro) {
-  if (ASTNode.type === 'number') {
-    return ASTNode.value;
-  }
-  if (ASTNode.type === 'label') {
   }
 }
 

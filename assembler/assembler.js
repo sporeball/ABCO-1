@@ -109,6 +109,8 @@ function assembler () {
     }
   }
 
+  // console.log(global.ASM.labels);
+
   // step 4: create program bytecode
   // TODO: memoize macro bytecode
   global.ASM.ptr = 0;
