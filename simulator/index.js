@@ -20,23 +20,39 @@ global.display = Array(32).fill(' ');
 export default function simulate (rom) {
   const user = Array(32768).fill(0);
   let ptr = 0;
-  let A = 0;
-  let B = 0;
-  let C = 0;
 
-  const decompiled = Util.decompile(rom);
+  // const decompiled = Util.decompile(rom);
 
-  user[0] = 1;
+  user[1] = 1;
 
-  while (C !== 32767) {
-    const instr = decompiled[ptr];
-    [A, B, C] = instr;
+  for (let i = 0; i < 1000; i++) {
+    if (ptr === 32736) {
+      break;
+    }
+
+    let A = 0;
+    let B = 0;
+    let C = 0;
+
+    A += rom[ptr].charCodeAt(0) * 256;
+    ptr++;
+    A += rom[ptr].charCodeAt(0);
+    ptr++;
+    B += rom[ptr].charCodeAt(0) * 256;
+    ptr++;
+    B += rom[ptr].charCodeAt(0);
+    ptr++;
+    C += rom[ptr].charCodeAt(0) * 256;
+    ptr++;
+    C += rom[ptr].charCodeAt(0);
+    // const instr = decompiled[ptr];
+    // [A, B, C] = instr;
     // logUpdate(`currently executing: ${instr.join(', ')}`);
 
     user[A] += user[B];
     if (user[A] > 255) {
       user[A] %= 256;
-      ptr = C / 6;
+      ptr = C;
     } else {
       ptr++;
     }
