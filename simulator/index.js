@@ -25,7 +25,7 @@ export default function simulate (rom) {
 
   user[1] = 1;
 
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 10000; i++) {
     if (ptr === 32736) {
       break;
     }
@@ -53,6 +53,7 @@ export default function simulate (rom) {
     if (user[A] > 255) {
       user[A] %= 256;
       ptr = C;
+      // console.log('branching to address', C);
     } else {
       ptr++;
     }
