@@ -85,7 +85,8 @@ function assembler () {
     global.ASM.macros[name] = {
       params,
       contents,
-      length
+      length,
+      uses: 0
     }
   }
 
@@ -110,13 +111,15 @@ function assembler () {
   }
 
   // console.log(global.ASM.labels);
+  console.log(global.ASM.macros);
 
   // step 4: create program bytecode
   // TODO: memoize macro bytecode
   global.ASM.ptr = 0;
   for (const command of AST.filter(tln => tln.type === 'command')) {
     // console.log(command);
-    Assembler.genBytecode(command);
+    const ptr = global.ASM.ptr;
+    Assembler.genBytecode(command, ptr);
   }
 
   // finished
