@@ -25,7 +25,7 @@ export default function simulate (rom) {
 
   user[1] = 1;
 
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 1000000; i++) {
     if (ptr === 32736) {
       break;
     }
@@ -45,9 +45,6 @@ export default function simulate (rom) {
     C += rom[ptr].charCodeAt(0) * 256;
     ptr++;
     C += rom[ptr].charCodeAt(0);
-    // const instr = decompiled[ptr];
-    // [A, B, C] = instr;
-    // logUpdate(`currently executing: ${instr.join(', ')}`);
 
     user[A] += user[B];
     if (user[A] > 255) {
@@ -60,12 +57,12 @@ export default function simulate (rom) {
 
     if (A >= 32736) {
       Display.write(A, user[A]);
+      logUpdate(`${Display.line(1)}\n${Display.line(2)}`);
     }
   }
 
-  console.log('userland:');
-  console.log(user);
+  // console.log('userland:');
+  // console.log(user);
 
-  console.log('output:');
-  Display.show();
+  // console.log('output:');
 }

@@ -11,17 +11,17 @@
  * @param {Number} value
  */
 export function write (address, value) {
-  global.display[address - 32736] = lookup[value];
+  global.display[address - 32736] = lookup[value] || '';
 }
 
 /**
- * show the contents of the display as two lines
- * this will discard it!
+ * return the nth line of the display as a string
+ * @param {Number} n
+ * @returns {string}
  */
-export function show () {
-  return [...Array(2)]
-    .map(x => global.display.splice(0, 16).join(''))
-    .map(x => console.log(x));
+export function line (n) {
+  return global.display.slice((n - 1) * 16, n * 16)
+    .join('');
 }
 
 export const lookup = '                 !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_`abcdefghijklmnopqrstuvwxyz{|}  ';
