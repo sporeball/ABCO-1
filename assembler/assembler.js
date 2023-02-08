@@ -22,6 +22,12 @@ const args = yeow({
     missing: 'a file must be passed',
     invalid: 'improper file format'
   },
+  size: {
+    type: 'number',
+    aliases: '-s / --size',
+    default: 32768,
+    invalid: 'invalid size'
+  },
   out: {
     type: 'file',
     extensions: '.bin',
@@ -125,7 +131,7 @@ function assembler () {
   // finished
   // pad with null bytes until 32K
   global.ASM.bytes += String.fromCharCode(0x00)
-    .repeat(32768 - global.ASM.bytes.length);
+    .repeat(args.size - global.ASM.bytes.length);
 
   // write out
   fs.writeFile(out, global.ASM.bytes, 'binary', () => {});
